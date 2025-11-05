@@ -1,6 +1,6 @@
 ---
 name: session-closure
-version: 1.2.0
+version: 1.3.0
 description: >
   Execute session closure protocol with resume creation. Supports
   full and minimal modes based on available context. Automatically
@@ -20,28 +20,6 @@ description: >
 ---
 
 # Session Closure Protocol
-
-## When This Skill Activates
-
-**TRIGGER PHRASES**:
-- "close context"
-- "end session"
-- "prepare to stop"
-- "save state"
-- "create resume"
-
-**AUTOMATIC TRIGGERS**:
-- Context approaching 170k tokens (proactive preservation)
-- SessionEnd hook (on /exit or /compact)
-- User indicates end of work session
-
-**DO NOT TRIGGER ON**:
-- "save file" (file operation)
-- "save draft" (work in progress)
-- Mid-conversation pauses
-- Temporary checkpoints
-
----
 
 ## Closure Steps
 
@@ -544,4 +522,43 @@ Learned from **project-cleanup v1.2.0**:
 
 ---
 
-*Session-closure skill v1.1.0 - Executable scripts + automated testing*
+## Additional Documentation
+
+For detailed information beyond task instructions, see:
+
+**User Documentation**:
+- **references/CONFIGURATION.md** - Setup, hooks, installation methods
+  - Archive structure and .gitignore recommendations
+  - SessionEnd hook integration
+  - Multi-project coordination with Project Status section
+- **references/TROUBLESHOOTING.md** - Common issues and solutions
+  - Phantom tasks issue (rare but documented)
+  - Sync Status guidance
+  - Debugging procedures
+
+**Developer Documentation**:
+- **references/DEVELOPMENT.md** - Scripts, architecture, contributing
+  - Script documentation (archive_resume.sh, validate_resume.sh)
+  - Testing procedures and automated test suite
+  - Performance benchmarks
+- **references/TESTING.md** - Test suite details and manual testing
+  - Comprehensive testing checklists
+  - Test scenarios and expected behavior
+  - Troubleshooting test failures
+
+**Design Documentation**:
+- **references/DESIGN_DECISIONS.md** - Why design choices were made
+  - Why use scripts vs inline code
+  - Progressive disclosure architecture rationale
+  - Git-aware archiving decisions
+- **references/IMPLEMENTATION_DETAILS.md** - Technical implementation
+  - Context limit handling (170k token trigger)
+  - Git tracking behavior (3 cases)
+  - Operational mode logic (Full/Minimal/Emergency)
+
+**Resume Format Specification**:
+- **references/RESUME_FORMAT_v1.2.md** - Complete format specification (in parent skill directory)
+
+---
+
+*Session-closure skill v1.3.0 - Progressive disclosure + cross-platform support*
