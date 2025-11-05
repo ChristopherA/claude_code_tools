@@ -1,0 +1,23 @@
+{
+  "name": "session-skills",
+  "owner": {
+    "name": "Christopher Allen",
+    "email": "ChristopherA@LifeWithAlacrity.com"
+  },
+  "metadata": {
+    "description": "Session continuity skills for Claude Code - maintain context across sessions",
+    "version": "1.2.1"
+  },
+  "plugins": [
+    {
+      "name": "session-skills",
+      "description": "Provides session-closure and session-resume skills for maintaining context across Claude Code sessions. Automatically creates session resumes with project status, sync tracking, and intelligent archiving.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/session-closure",
+        "./skills/session-resume"
+      ]
+    }
+  ]
+}
