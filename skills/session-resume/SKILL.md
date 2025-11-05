@@ -1,6 +1,6 @@
 ---
 name: session-resume
-version: 1.2.1
+version: 1.3.0
 description: >
   Load and process previous session context from CLAUDE_RESUME.md.
   Provides summary and highlights next session focus. Uses executable
@@ -18,29 +18,6 @@ description: >
 ---
 
 # Session Resume Protocol
-
-## When This Skill Activates
-
-**TRIGGER PHRASES** (Explicit only):
-- "resume"
-- "load resume"
-- "continue from last session"
-- "what was I working on"
-- "show previous session"
-- "previous context"
-- "load context"
-
-**NEVER AUTO-INVOKE**:
-- ❌ Does NOT trigger automatically on session start
-- ❌ Does NOT trigger on file existence
-- ❌ Requires explicit user request
-
-**DO NOT TRIGGER ON**:
-- File operations ("load file", "read document")
-- Mid-session context switches
-- General questions about the project
-
----
 
 ## Resume Loading Steps
 
@@ -535,4 +512,49 @@ Learned from **project-cleanup v1.2.0**:
 
 ---
 
-*Session-resume skill v1.2.1 - Fixed script path resolution for skills directory*
+## Additional Documentation
+
+For detailed information beyond task instructions, see:
+
+**User Documentation**:
+- **references/CONFIGURATION.md** - Setup, hooks, installation methods
+  - SessionStart notification hook
+  - Combined workflow with session-closure
+  - Multi-project coordination
+  - Staleness threshold customization
+- **references/EXAMPLES.md** - Real-world usage scenarios
+  - Basic resume loading examples
+  - Stale resume handling
+  - Archive browsing examples
+  - Team collaboration workflows
+
+**Developer Documentation**:
+- **references/DEVELOPMENT.md** - Scripts, architecture, contributing
+  - check_staleness.sh implementation details
+  - list_archives.sh documentation
+  - Cross-platform date handling
+  - Testing infrastructure
+- **references/TESTING.md** - Test suite details and manual testing
+  - 8 automated tests coverage
+  - Manual testing procedures
+  - Cross-platform testing (macOS + Linux)
+  - Troubleshooting test failures
+
+**Design Documentation**:
+- **references/DESIGN_DECISIONS.md** - Why design choices were made
+  - Why explicit triggering only (no auto-invoke)
+  - Why staleness detection matters
+  - Progressive disclosure architecture rationale
+  - Cross-platform compatibility decisions
+- **references/ROADMAP.md** - Future enhancements and version history
+  - Version history (v1.1.0 → v1.3.0)
+  - Planned features (archive search, branch-aware resumes)
+  - Feature requests and community input
+  - Non-goals and boundaries
+
+**Resume Format Specification**:
+- **references/RESUME_FORMAT_v1.2.md** - Complete format specification (in parent skill directory)
+
+---
+
+*Session-resume skill v1.3.0 - Progressive disclosure + cross-platform support*
