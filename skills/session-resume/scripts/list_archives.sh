@@ -1,6 +1,6 @@
 #!/bin/bash
 # list_archives.sh - List archived resumes sorted by date
-# Part of session-resume skill v1.1.0
+# Part of session-resume skill v1.3.0
 #
 # Usage: ./list_archives.sh [--limit N] [--format short|detailed]
 #

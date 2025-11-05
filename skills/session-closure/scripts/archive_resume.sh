@@ -1,6 +1,6 @@
 #!/bin/bash
 # archive_resume.sh - Archive CLAUDE_RESUME.md with timestamp
-# Part of session-closure skill v1.1.0
+# Part of session-closure skill v1.3.0
 #
 # Usage: ./archive_resume.sh [--dry-run]
 #

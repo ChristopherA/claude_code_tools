@@ -214,7 +214,7 @@ cd skills/session-resume/tests
 ./test_scripts.sh
 ```
 
-Expected: All tests passing (10 tests for session-closure, 8 tests for session-resume)
+Expected: All tests passing (6 tests with 12 assertions for session-closure, 8 tests for session-resume)
 
 ## Resume Format
 

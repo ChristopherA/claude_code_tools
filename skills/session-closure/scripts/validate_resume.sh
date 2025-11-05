@@ -1,6 +1,6 @@
 #!/bin/bash
 # validate_resume.sh - Validate CLAUDE_RESUME.md structure
-# Part of session-closure skill v1.1.0
+# Part of session-closure skill v1.3.0
 #
 # Usage: ./validate_resume.sh [RESUME_FILE]
 #

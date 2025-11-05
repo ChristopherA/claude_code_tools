@@ -1,14 +1,16 @@
 #!/bin/bash
 # check_staleness.sh - Check resume age and return staleness level
-# Part of session-resume skill v1.2.1
+# Part of session-resume skill v1.3.0
 #
 # Usage: ./check_staleness.sh [RESUME_FILE]
 #
 # Extracts session date from resume and calculates age in days.
 # Returns staleness category: fresh|recent|stale|very_stale
 #
-# v1.2.1 fix: Added directory traversal to find CLAUDE_RESUME.md when
-# script is called from skills subdirectory (common in skill invocation)
+# v1.3.0 updates:
+# - Added cross-platform date command support (macOS BSD + Linux GNU)
+# - v1.2.1 fix: Added directory traversal to find CLAUDE_RESUME.md when
+#   script is called from skills subdirectory (common in skill invocation)
 #
 # Staleness levels:
 # - fresh: <1 day
@@ -62,13 +64,21 @@ if [ -z "$SESSION_DATE" ]; then
     exit 1
 fi
 
-# Calculate age in days (macOS compatible date command)
+# Calculate age in days (cross-platform date command)
 TODAY=$(date +%s)
-SESSION_EPOCH=$(date -j -f "%B %d, %Y" "$SESSION_DATE" +%s 2>/dev/null || echo "0")
 
-if [ "$SESSION_EPOCH" -eq 0 ]; then
-    # Try alternate format: Month DD YYYY (without comma)
-    SESSION_EPOCH=$(date -j -f "%B %d %Y" "$SESSION_DATE" +%s 2>/dev/null || echo "0")
+# Detect OS and use appropriate date command
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS (BSD date)
+    SESSION_EPOCH=$(date -j -f "%B %d, %Y" "$SESSION_DATE" +%s 2>/dev/null || echo "0")
+
+    if [ "$SESSION_EPOCH" -eq 0 ]; then
+        # Try alternate format: Month DD YYYY (without comma)
+        SESSION_EPOCH=$(date -j -f "%B %d %Y" "$SESSION_DATE" +%s 2>/dev/null || echo "0")
+    fi
+else
+    # Linux/GNU date
+    SESSION_EPOCH=$(date -d "$SESSION_DATE" +%s 2>/dev/null || echo "0")
 fi
 
 if [ "$SESSION_EPOCH" -eq 0 ]; then

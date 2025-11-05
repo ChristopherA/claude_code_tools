@@ -76,7 +76,7 @@ claude_code_tools/
 **Total files**: 16 files (excluding .git)
 
 ### Testing Verification ✅
-- session-closure: 12 tests passing ✅
+- session-closure: 6 tests (12 assertions) passing ✅
 - session-resume: 8 tests passing ✅
 - All scripts executable (chmod +x applied)
 - All scripts working from plugin location
@@ -222,7 +222,7 @@ All Phase 1 success criteria met:
 - ✅ README.md comprehensive and clear
 - ✅ .gitignore properly configured
 - ✅ All scripts executable
-- ✅ All tests passing (20/20)
+- ✅ All tests passing (14 total: 6 tests + 8 tests = 20 assertions total)
 - ✅ Ready for git commit
 - ✅ Ready for GitHub push
 
