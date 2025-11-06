@@ -305,39 +305,61 @@ Both skills follow best practices:
 - **Format Validation**: Resume structure verified before writing
 - **Error Handling**: Graceful degradation and clear error messages
 
+## Documentation
+
+### Core Documentation
+- **[CHANGELOG.md](./CHANGELOG.md)** - Version history and release notes
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Contribution guidelines and development setup
+- **[PHASE_2_COMPLETE.md](./PHASE_2_COMPLETE.md)** - v1.3.0 implementation details
+
+### Examples
+- **[examples/](./examples/)** - Real-world workflow examples
+  - [Daily Workflow](./examples/daily-workflow.md) - Individual developer workflow
+  - [Team Coordination](./examples/team-coordination.md) - Team collaboration workflow
+
+### Skill-Specific Documentation
+
+**session-closure**: See `skills/session-closure/references/` for:
+- CONFIGURATION.md - Setup and hooks
+- TESTING.md - Test procedures
+- DEVELOPMENT.md - Script documentation
+- DESIGN_DECISIONS.md - Architecture rationale
+- IMPLEMENTATION_DETAILS.md - Technical details
+- TROUBLESHOOTING.md - Common issues
+
+**session-resume**: See `skills/session-resume/references/` for:
+- CONFIGURATION.md - Setup and hooks
+- TESTING.md - Test procedures
+- DEVELOPMENT.md - Script documentation
+- DESIGN_DECISIONS.md - Architecture rationale
+- EXAMPLES.md - 13 usage scenarios
+- ROADMAP.md - Future enhancements
+
 ## Versions
 
-**Current**: v1.2.1
+**Current**: v1.3.0 (November 5, 2025)
 
-**session-closure**: v1.2.0
-- Project Status section (inter-project communication)
-- Sync Status section (authoritative source tracking)
-- TodoWrite clearing (optional troubleshooting)
-- Full/Minimal/Emergency modes
+**Key Features**:
+- Progressive disclosure architecture (76% token reduction)
+- Cross-platform support (macOS + Linux)
+- 12 reference files (4,200 lines on-demand documentation)
+- BSD-2-Clause-Patent LICENSE
+- 14 tests (20 assertions) all passing
 
-**session-resume**: v1.2.1
-- Fixed script path resolution for skills directory
-- Project Status recognition
-- Sync Status recognition
-- Staleness detection and warnings
-- Archive browsing and loading
-
-## Roadmap
-
-**Future enhancements** (v1.3.0 planned):
-- Optimize SKILL.md size (<350 lines target)
-- Enhanced progressive disclosure with reference/ files
-- Archive statistics and cleanup utilities
-- Multi-project resume aggregation
-- Resume export/import for backup
+See [CHANGELOG.md](./CHANGELOG.md) for complete version history.
 
 ## Contributing
 
-Issues and pull requests welcome at: https://github.com/ChristopherA/claude_code_tools
+Contributions welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+
+**Quick links**:
+- Issues: https://github.com/ChristopherA/claude_code_tools/issues
+- Pull Requests: https://github.com/ChristopherA/claude_code_tools/pulls
+- Discussions: https://github.com/ChristopherA/claude_code_tools/discussions
 
 ## License
 
-MIT License - see LICENSE file for details
+BSD-2-Clause-Patent License - see [LICENSE](./LICENSE) file for details
 
 ## Author
 
