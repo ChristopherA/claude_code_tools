@@ -1,23 +1,44 @@
 #!/bin/bash
 # list_archives.sh - List archived resumes sorted by date
-# Part of session-resume skill v1.3.0
+# Part of session-resume skill v1.3.1
 #
-# Usage: ./list_archives.sh [--limit N] [--format short|detailed]
+# Usage: ./list_archives.sh [PROJECT_ROOT] [--limit N] [--format short|detailed]
+#
+# Arguments:
+#   PROJECT_ROOT - Path to project root directory (defaults to current directory)
+#                  Archives should be at PROJECT_ROOT/archives/CLAUDE_RESUME/
 #
 # Lists archived CLAUDE_RESUME.md files from archives/CLAUDE_RESUME/
 # Sorted newest first
+#
+# v1.3.1 updates:
+# - Accept PROJECT_ROOT parameter for working directory independence
+# - Change to project root before operating
 #
 # Exit codes:
 # 0 - Success (archives found or not found)
 
 set -e
 
-# Configuration
+# Parse PROJECT_ROOT argument (first positional arg if not starting with --)
+PROJECT_ROOT="."
+if [[ $# -gt 0 && ! "$1" =~ ^-- ]]; then
+    PROJECT_ROOT="$1"
+    shift
+fi
+
+# Change to project root directory
+cd "$PROJECT_ROOT" || {
+    echo "Error: Cannot access project root: $PROJECT_ROOT" >&2
+    exit 1
+}
+
+# Configuration (now using relative paths after cd to project root)
 ARCHIVE_DIR="archives/CLAUDE_RESUME"
 LIMIT=10
 FORMAT="short"
 
-# Parse arguments
+# Parse remaining arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
         --limit)

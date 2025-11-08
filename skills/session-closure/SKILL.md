@@ -52,10 +52,12 @@ Check available context budget:
 Before creating new resume, run the archive script:
 
 ```bash
-./scripts/archive_resume.sh
+./scripts/archive_resume.sh "$PWD"
 ```
 
 **Script behavior**:
+- Receives project root directory via $PWD parameter
+- Changes to project root to ensure correct file locations
 - If CLAUDE_RESUME.md doesn't exist: Skips (nothing to archive)
 - If file is tracked in git: Skips (git history is the archive)
 - Otherwise: Moves to `archives/CLAUDE_RESUME/<timestamp>.md`
@@ -207,10 +209,12 @@ Analyze the session based on operational mode:
 After creating CLAUDE_RESUME.md, validate it:
 
 ```bash
-./scripts/validate_resume.sh
+./scripts/validate_resume.sh "$PWD"
 ```
 
 **Script checks**:
+- Receives project root directory via $PWD parameter
+- Changes to project root to find CLAUDE_RESUME.md
 - File exists
 - Contains "Last Session" header
 - Contains "Last Activity" section
@@ -232,7 +236,51 @@ After creating CLAUDE_RESUME.md, validate it:
 - Catches missing sections before session ends
 - Tested behavior (validated by test suite)
 
-### Step 5: Confirmation
+### Step 5: Git Backup (If Needed)
+
+After validation, if project is a git repository, commit the session state:
+
+```bash
+if git rev-parse --git-dir >/dev/null 2>&1; then
+  if [ -n "$(git status --porcelain)" ]; then
+    # Changes exist, commit them
+    git add .
+    git commit -S -s -m "Session closure: $(date +%Y-%m-%d-%H%M)
+
+Resume created with session state.
+$(git status --short | head -5)"
+
+    echo "✅ Session state committed for backup"
+  else
+    echo "✓ No uncommitted changes"
+  fi
+else
+  echo "✓ Not a git repository"
+fi
+```
+
+**Why this step**:
+- Ensures CLAUDE_RESUME.md is backed up in git
+- Archives previous resume if it was created
+- Commits any other pending work from session
+- Aligns with "git for backup" tracking strategy
+- Prevents data loss between sessions
+
+**Script flags**:
+- `-S`: GPG sign (if configured)
+- `-s`: Add Signed-off-by line
+
+**Error handling**:
+- If commit fails (e.g., no GPG key): Report error but don't block closure
+- If no changes: Skip silently (shows "✓ No uncommitted changes")
+- If not git repo: Skip silently (shows "✓ Not a git repository")
+
+**When to use**:
+- Projects tracking session files in git for backup
+- Any uncommitted work needs to be preserved
+- Ensures session state is recoverable
+
+### Step 6: Confirmation
 
 After validation passes, report completion:
 
@@ -561,4 +609,4 @@ For detailed information beyond task instructions, see:
 
 ---
 
-*Session-closure skill v1.3.0 - Progressive disclosure + cross-platform support*
+*Session-closure skill v1.3.1 - Working directory fixes + git backup*

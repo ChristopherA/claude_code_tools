@@ -337,9 +337,11 @@ Both skills follow best practices:
 
 ## Versions
 
-**Current**: v1.3.0 (November 5, 2025)
+**Current**: v1.3.1 (November 7, 2025)
 
 **Key Features**:
+- **NEW**: Working directory fixes - scripts work from any directory
+- **NEW**: Git backup step - automatic session state backup
 - Progressive disclosure architecture (76% token reduction)
 - Cross-platform support (macOS + Linux)
 - 12 reference files (4,200 lines on-demand documentation)

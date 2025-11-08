@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.1] - 2025-11-07
+
+### Fixed
+- **Issue 1 (CRITICAL)**: Working directory assumptions in session-closure
+  - Scripts now accept PROJECT_ROOT parameter passed via $PWD
+  - Added project root verification (checks for CLAUDE.md)
+  - Scripts cd to project root before operating
+  - Fixes resume/archive creation in wrong location when Claude changes working directory
+- **Issue 2 (CRITICAL)**: Missing git backup step in session-closure
+  - Added Step 5 (Git Backup) between validation and confirmation
+  - Checks for git repository before attempting commit
+  - Only commits if there are uncommitted changes
+  - Prevents data loss by ensuring session state backed up in git
+- **Issue 3 (MEDIUM)**: Script path issues in session-resume
+  - check_staleness.sh now accepts PROJECT_ROOT parameter
+  - list_archives.sh now accepts PROJECT_ROOT parameter
+  - Scripts cd to project root before operating
+  - Fixes resume loading from any directory
+
+### Changed
+- **session-closure/SKILL.md**: Updated to pass $PWD to scripts, added git backup step
+- **session-closure/scripts/archive_resume.sh**: Now accepts PROJECT_ROOT parameter (v1.3.0 → v1.3.1)
+- **session-closure/scripts/validate_resume.sh**: Now accepts PROJECT_ROOT parameter (v1.3.0 → v1.3.1)
+- **session-resume/SKILL.md**: Updated to pass $PWD to scripts
+- **session-resume/scripts/check_staleness.sh**: Now accepts PROJECT_ROOT parameter (v1.3.0 → v1.3.1)
+- **session-resume/scripts/list_archives.sh**: Now accepts PROJECT_ROOT parameter (v1.3.0 → v1.3.1)
+
+### Resolved (Side-effects of Issue 1 fix)
+- **Issue 4 (LOW)**: No error recovery in validation - eliminated by working directory fix
+- **Issue 5 (MEDIUM)**: Archive location mismatch - resolved by project root verification
+- **Issue 6 (LOW)**: Missing error handling for working directory - resolved by proper error handling
+
+### Testing
+- All scenarios tested on macOS 15.0 (Darwin 25.0.0)
+- ✅ From project root
+- ✅ From subdirectory
+- ✅ From different directory
+- ✅ Archive creation in non-git directories
+- See session-skills-fixes/tests/README.md for detailed test results
+
+---
+
 ## [1.3.0] - 2025-11-05
 
 ### Added

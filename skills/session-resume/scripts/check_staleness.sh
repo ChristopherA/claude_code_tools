@@ -1,16 +1,23 @@
 #!/bin/bash
 # check_staleness.sh - Check resume age and return staleness level
-# Part of session-resume skill v1.3.0
+# Part of session-resume skill v1.3.1
 #
-# Usage: ./check_staleness.sh [RESUME_FILE]
+# Usage: ./check_staleness.sh [PROJECT_ROOT]
+#
+# Arguments:
+#   PROJECT_ROOT - Path to project root directory (defaults to current directory)
+#                  Resume file should be at PROJECT_ROOT/CLAUDE_RESUME.md
 #
 # Extracts session date from resume and calculates age in days.
 # Returns staleness category: fresh|recent|stale|very_stale
 #
+# v1.3.1 updates:
+# - Accept PROJECT_ROOT parameter for working directory independence
+# - Change to project root before operating
+# - Verify project root (check for CLAUDE.md)
+#
 # v1.3.0 updates:
 # - Added cross-platform date command support (macOS BSD + Linux GNU)
-# - v1.2.1 fix: Added directory traversal to find CLAUDE_RESUME.md when
-#   script is called from skills subdirectory (common in skill invocation)
 #
 # Staleness levels:
 # - fresh: <1 day
@@ -24,22 +31,23 @@
 
 set -e
 
-# Default to CLAUDE_RESUME.md if no argument provided
-RESUME="${1:-CLAUDE_RESUME.md}"
+# Parse arguments
+PROJECT_ROOT="${1:-.}"
 
-# If RESUME is a relative path and doesn't exist, try looking in project root
-# (Script may be called from skills directory)
-if [ ! -f "$RESUME" ]; then
-    # Try to find project root by looking for CLAUDE_RESUME.md up the directory tree
-    CURRENT_DIR="$PWD"
-    while [ "$CURRENT_DIR" != "/" ]; do
-        if [ -f "$CURRENT_DIR/$RESUME" ]; then
-            RESUME="$CURRENT_DIR/$RESUME"
-            break
-        fi
-        CURRENT_DIR=$(dirname "$CURRENT_DIR")
-    done
+# Change to project root directory
+cd "$PROJECT_ROOT" || {
+    echo "error" >&2
+    exit 1
+}
+
+# Verify we're in a project root (should have CLAUDE.md)
+if [ ! -f "CLAUDE.md" ]; then
+    echo "error" >&2
+    exit 1
 fi
+
+# Resume file is always CLAUDE_RESUME.md in project root
+RESUME="CLAUDE_RESUME.md"
 
 # Check if file exists
 if [ ! -f "$RESUME" ]; then

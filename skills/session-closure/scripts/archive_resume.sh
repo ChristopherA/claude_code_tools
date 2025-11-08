@@ -1,8 +1,12 @@
 #!/bin/bash
 # archive_resume.sh - Archive CLAUDE_RESUME.md with timestamp
-# Part of session-closure skill v1.3.0
+# Part of session-closure skill v1.3.1
 #
-# Usage: ./archive_resume.sh [--dry-run]
+# Usage: ./archive_resume.sh [PROJECT_ROOT] [--dry-run]
+#
+# Arguments:
+#   PROJECT_ROOT - Path to project root directory (defaults to current directory)
+#                  Should contain CLAUDE.md to verify it's a project root
 #
 # Behavior:
 # - If CLAUDE_RESUME.md is tracked in git: Skip archiving (git history is archive)
@@ -15,16 +19,33 @@
 
 set -e
 
-# Configuration
+# Parse arguments
+PROJECT_ROOT="${1:-.}"
+DRY_RUN=false
+
+# Check for --dry-run in any argument position
+for arg in "$@"; do
+    if [ "$arg" = "--dry-run" ]; then
+        DRY_RUN=true
+    fi
+done
+
+# Change to project root directory
+cd "$PROJECT_ROOT" || {
+    echo "❌ Error: Cannot access project root: $PROJECT_ROOT" >&2
+    exit 1
+}
+
+# Verify we're in a project root (should have CLAUDE.md)
+if [ ! -f "CLAUDE.md" ]; then
+    echo "⚠️  Warning: No CLAUDE.md found - may not be project root" >&2
+    echo "   Working directory: $(pwd)" >&2
+fi
+
+# Configuration (now using relative paths after cd to project root)
 ARCHIVE_DIR="archives/CLAUDE_RESUME"
 SOURCE="CLAUDE_RESUME.md"
 TIMESTAMP=$(date +%Y-%m-%d-%H%M)
-DRY_RUN=false
-
-# Parse arguments
-if [ "$1" = "--dry-run" ]; then
-    DRY_RUN=true
-fi
 
 # Function: Check if in git repo
 in_git_repo() {

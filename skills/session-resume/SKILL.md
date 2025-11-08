@@ -30,7 +30,7 @@ description: >
 2. **If CLAUDE_RESUME.md not found**, check archives:
 
    ```bash
-   ./scripts/list_archives.sh --format detailed
+   ./scripts/list_archives.sh "$PWD" --format detailed
    ```
 
    **Script output**:
@@ -53,7 +53,7 @@ description: >
 Use the staleness check script:
 
 ```bash
-STALENESS=$(./scripts/check_staleness.sh)
+STALENESS=$(./scripts/check_staleness.sh "$PWD")
 ```
 
 **Script output** (one of):
@@ -557,4 +557,4 @@ For detailed information beyond task instructions, see:
 
 ---
 
-*Session-resume skill v1.3.0 - Progressive disclosure + cross-platform support*
+*Session-resume skill v1.3.1 - Working directory fixes*
