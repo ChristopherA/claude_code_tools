@@ -1,16 +1,34 @@
 ---
 name: session-resume
-version: 1.3.0
+version: 1.3.6
 description: >
   Load and process previous session context from CLAUDE_RESUME.md.
   Provides summary and highlights next session focus. Uses executable
   scripts for staleness detection and archive listing. Recognizes
   Project Status (inter-project communication) and Sync Status
-  (authoritative source tracking) sections.
+  (authoritative source tracking) sections. Enhanced SessionStart hook
+  warns about uncommitted changes for better between-session awareness.
+
+  ENHANCED in v1.3.6: Step 0.5 now provides contextual messaging about
+  what changed (resume edits, project work, or both). Helps user understand
+  the nature of uncommitted changes before committing. Professional status
+  indicators and clear explanations improve workflow clarity.
+
+  FIXED in v1.3.5: Script paths now use SKILL_BASE for absolute path
+  resolution. Works in workspace root, project subdirectories, and all
+  contexts. Previously failed with "no such file" in workspace roots.
+
+  CRITICAL in v1.3.4: Step 0.5 now BLOCKS if uncommitted changes exist
+  (does NOT auto-commit). User must manually commit changes using Git
+  Commit Protocol before resume proceeds. This ensures clean separation
+  between previous changes and new session work, prevents mixing commits,
+  and maintains workflow integrity. Includes secret detection warnings.
+
 
   WHEN: User explicitly requests "resume", "load resume", "continue
   from last session", "what was I working on", "show previous session",
   or "previous context".
+
 
   WHEN NOT: Automatically on session start, mid-session context switches,
   when no CLAUDE_RESUME.md exists, or during file operations. Never
@@ -19,7 +37,278 @@ description: >
 
 # Session Resume Protocol
 
+## Setup
+
+Before executing any steps, establish the skill base directory for script access:
+
+```bash
+# Skill base directory - works in all contexts (project root, workspace root, subdirectories)
+SKILL_BASE="${SKILL_BASE:-$HOME/.claude/skills/session-resume}"
+```
+
+This ensures scripts can be found regardless of where the skill is invoked from.
+
 ## Resume Loading Steps
+
+### Step 0.5: Check for Uncommitted Changes (BLOCKING)
+
+**Purpose**: Ensure clean git state before loading resume context.
+
+**Why this matters**:
+- Uncommitted changes must be committed BEFORE other work
+- Prevents mixing previous changes with new session work
+- Maintains clean git checkpoints for recovery
+- Follows Git Commit Protocol (explicit approval required)
+
+**Implementation**:
+
+1. **Check if git repository**:
+   ```bash
+   git rev-parse --git-dir >/dev/null 2>&1
+   ```
+   - If not a git repo: Skip this step entirely (proceed to Step 1)
+   - If git repo: Continue to check for changes
+
+2. **Check for uncommitted changes**:
+   ```bash
+   # Use porcelain v2 for reliable machine-parseable output
+   git status --porcelain=v2
+   ```
+   - If empty (no changes): Proceed to Step 1
+   - If non-empty: BLOCK and require user action
+
+3. **When uncommitted changes detected** (BLOCKING):
+
+   a. **Display all changes with context**:
+   ```bash
+   # Check what types of changes exist
+   # Use porcelain v2 for reliable parsing
+   RESUME_CHANGED=false
+   OTHER_CHANGED=false
+
+   if git diff --quiet CLAUDE_RESUME.md 2>/dev/null && git diff --cached --quiet CLAUDE_RESUME.md 2>/dev/null; then
+       RESUME_CHANGED=false
+   else
+       RESUME_CHANGED=true
+   fi
+
+   # Check if any other files changed (porcelain v2 format)
+   CHANGES=$(git status --porcelain=v2)
+   OTHER_FILES=$(echo "$CHANGES" | grep -v "CLAUDE_RESUME.md")
+
+   if [ -n "$OTHER_FILES" ]; then
+       OTHER_CHANGED=true
+   fi
+
+   # Contextual header
+   echo "❌ Cannot resume: Uncommitted changes detected"
+   echo ""
+
+   if [ "$RESUME_CHANGED" = true ] && [ "$OTHER_CHANGED" = true ]; then
+       echo "📝 Changes found in CLAUDE_RESUME.md AND other project files"
+       echo "   (Manual edits to resume + work done while session suspended)"
+   elif [ "$RESUME_CHANGED" = true ]; then
+       echo "📝 Changes found in CLAUDE_RESUME.md"
+       echo "   (Manual edits made between sessions)"
+   else
+       echo "📝 Changes found in project files"
+       echo "   (Work done while session was suspended)"
+   fi
+
+   echo ""
+   echo "The following files have uncommitted changes:"
+   echo ""
+   git status --short
+   echo ""
+   echo "=== Full diff ==="
+   git diff HEAD
+
+   # For untracked files, show content
+   git ls-files --others --exclude-standard | while read file; do
+       echo ""
+       echo "=== New file: $file ==="
+       cat "$file"
+   done
+   ```
+
+   b. **Check for secret files** (warning only):
+   ```bash
+   # Use porcelain v2 for reliable parsing
+   CHANGES=$(git status --porcelain=v2)
+   # Extract filenames (last field in porcelain v2 output)
+   FILENAMES=$(echo "$CHANGES" | awk '{print $NF}')
+   SECRET_FILES=$(echo "$FILENAMES" | grep -E '\.(env|credentials|key|pem|secret)$|credentials\.json|\.aws/|\.ssh/' || true)
+
+   if [ -n "$SECRET_FILES" ]; then
+       echo ""
+       echo "⚠️  WARNING: Potential secret files detected:"
+       echo "$SECRET_FILES"
+       echo ""
+       echo "Review carefully before committing!"
+   fi
+   ```
+
+   c. **Provide clear next steps**:
+   ```bash
+   echo ""
+   echo "────────────────────────────────────────"
+   echo "REQUIRED ACTION: Commit changes before resuming"
+   echo "────────────────────────────────────────"
+   echo ""
+   echo "1. Review the changes above"
+   echo "2. Commit them using Git Commit Protocol:"
+   echo ""
+   echo "   git add <files>           # Stage specific files"
+   echo "   # Draft commit message"
+   echo "   # Say: I APPROVE THIS COMMIT"
+   echo "   git commit -S -s -m \"<message>\""
+   echo ""
+   echo "3. Then say 'resume' again to load session context"
+   echo ""
+   echo "Why this matters:"
+   echo "- Keeps your changes separate from new session work"
+   echo "- Maintains clean git checkpoints for recovery"
+   echo "- Follows Git Commit Protocol (explicit approval)"
+   echo ""
+
+   exit 1  # Block execution
+   ```
+
+4. **If no uncommitted changes**: Proceed directly to Step 1 (silent success)
+
+**Error handling**:
+
+- **Not a git repo**: Silent skip (proceed to Step 1)
+- **Git command fails**: Display error, suggest manual git status check
+- **Any uncommitted changes**: BLOCK with clear instructions (exit 1)
+
+**User experience**:
+
+**Scenario A: No uncommitted changes** (normal case)
+```
+User: resume
+
+Claude: 📋 Resuming from November 13, 2025 session:
+[Normal resume presentation - Step 0.5 passed silently]
+```
+
+**Scenario B: Resume file changed** (BLOCKING)
+```
+User: resume
+
+Claude: ❌ Cannot resume: Uncommitted changes detected
+
+📝 Changes found in CLAUDE_RESUME.md
+   (Manual edits made between sessions)
+
+The following files have uncommitted changes:
+
+M  CLAUDE_RESUME.md
+
+=== Full diff ===
+[Shows complete diff output]
+
+────────────────────────────────────────
+REQUIRED ACTION: Commit changes before resuming
+────────────────────────────────────────
+[Instructions...]
+```
+
+**Scenario C: Project files changed** (BLOCKING)
+```
+User: resume
+
+Claude: ❌ Cannot resume: Uncommitted changes detected
+
+📝 Changes found in project files
+   (Work done while session was suspended)
+
+The following files have uncommitted changes:
+
+M  requirements/ISSUES_SESSION_SKILLS.md
+?? new_file.md
+
+=== Full diff ===
+[Shows complete diff output]
+
+────────────────────────────────────────
+REQUIRED ACTION: Commit changes before resuming
+────────────────────────────────────────
+[Instructions...]
+```
+
+**Scenario D: Both resume and project files** (BLOCKING)
+```
+User: resume
+
+Claude: ❌ Cannot resume: Uncommitted changes detected
+
+📝 Changes found in CLAUDE_RESUME.md AND other project files
+   (Manual edits to resume + work done while session suspended)
+
+The following files have uncommitted changes:
+
+M  CLAUDE_RESUME.md
+M  requirements/ISSUES_SESSION_SKILLS.md
+
+=== Full diff ===
+[Shows complete diff output]
+
+────────────────────────────────────────
+REQUIRED ACTION: Commit changes before resuming
+────────────────────────────────────────
+[Instructions...]
+```
+
+**Scenario E: Secret files detected** (BLOCKING with warning)
+```
+User: resume
+
+Claude: ❌ Cannot resume: Uncommitted changes detected
+
+The following files have uncommitted changes:
+
+M  .env
+?? credentials.json
+
+⚠️  WARNING: Potential secret files detected:
+M  .env
+?? credentials.json
+
+Review carefully before committing!
+
+────────────────────────────────────────
+REQUIRED ACTION: Commit changes before resuming
+────────────────────────────────────────
+
+[Rest of blocking message with instructions...]
+```
+
+**Integration with SessionStart hook**:
+
+The SessionStart hook (v1.3.2) already warns about uncommitted changes:
+```
+⚠️  Uncommitted changes from previous session. Review with "git status".
+```
+
+Step 0.5 complements this by:
+1. User sees warning at session start
+2. User says "resume"
+3. Step 0.5 BLOCKS if uncommitted changes exist
+4. User commits changes manually using Git Commit Protocol
+5. User says "resume" again - now proceeds normally
+
+**Testing this step**:
+- [ ] No git repo: Step skipped silently (proceed to Step 1)
+- [ ] Git repo, no changes: Step skipped silently (proceed to Step 1)
+- [ ] Git repo, modified files: BLOCKS with clear message
+- [ ] Git repo, new files: BLOCKS with clear message
+- [ ] Git repo, deleted files: BLOCKS with clear message
+- [ ] Git repo, mixed changes: BLOCKS, shows all changes
+- [ ] Secret files present: BLOCKS with WARNING
+- [ ] After committing: Step 0.5 passes, proceeds to Step 1
+
+---
 
 ### Step 1: Check for Resume File
 
@@ -30,7 +319,7 @@ description: >
 2. **If CLAUDE_RESUME.md not found**, check archives:
 
    ```bash
-   ./scripts/list_archives.sh "$PWD" --format detailed
+   "$SKILL_BASE/scripts/list_archives.sh" "$PWD" --format detailed
    ```
 
    **Script output**:
@@ -53,7 +342,7 @@ description: >
 Use the staleness check script:
 
 ```bash
-STALENESS=$(./scripts/check_staleness.sh "$PWD")
+STALENESS=$("$SKILL_BASE/scripts/check_staleness.sh" "$PWD")
 ```
 
 **Script output** (one of):
@@ -287,7 +576,31 @@ they provide complete session continuity.
 2. Start session → Notification about resume (SessionStart hook)
 3. Say "resume" → This skill loads context
 
-**SessionStart hook** (recommended):
+**SessionStart hook** (recommended - enhanced v1.3.7):
+```json
+{
+  "hooks": {
+    "SessionStart": [{
+      "type": "command",
+      "command": "date +'📅 Today is %A, %B %d, %Y' && ([ -f CLAUDE_RESUME.md ] && echo '\\n📋 Previous session available. Say \"resume\" to continue.' || true) && (git rev-parse --git-dir >/dev/null 2>&1 && [ -n \"$(git status --porcelain=v2)\" ] && echo '\\n⚠️  Uncommitted changes from previous session. Review with \"git status\".' || true)"
+    }]
+  }
+}
+```
+
+**What this hook does** (v1.3.2 enhanced):
+- Shows current date and day of week
+- Notifies if CLAUDE_RESUME.md exists (resume available)
+- **NEW**: Warns if uncommitted changes exist (git dirty state)
+- All checks are non-blocking (graceful if files or git not available)
+
+**Why the git warning helps**:
+- User aware of dirty state at session START (before resuming)
+- Addresses between-session change detection
+- Non-blocking (informational only - user decides whether to commit)
+- Works with any project (gracefully skips if not a git repo)
+
+**Alternative: Basic hook** (without git warning):
 ```json
 {
   "hooks": {
@@ -414,6 +727,20 @@ or type /exit to create a resume for next time.
 - [ ] Presents summary correctly
 - [ ] Shows "Next Session Focus" clearly
 
+**Between-Session Changes (Step 0.5)** - NEW in v1.3.3:
+- [ ] No git repo: Step skipped silently
+- [ ] Git repo, no changes: Step skipped silently
+- [ ] Git repo, modified files: Changes detected and committed
+- [ ] Git repo, new untracked files: Changes detected and committed
+- [ ] Git repo, deleted files: Changes detected and committed
+- [ ] Git repo, mixed changes (modified + new + deleted): All detected
+- [ ] Secret files (.env, credentials.json, etc.): Auto-commit blocked
+- [ ] Diffs displayed for all changed files
+- [ ] Untracked file contents shown
+- [ ] Commit message includes per-file summaries
+- [ ] Clean state verified after auto-commit
+- [ ] Context incorporated before resume loads
+
 **Staleness Detection**:
 - [ ] Fresh resume (<24h): No warning
 - [ ] Recent resume (1-7 days): Notes age
@@ -441,6 +768,7 @@ or type /exit to create a resume for next time.
 - [ ] Works with SessionStart hook notification
 - [ ] Pairs correctly with session-closure
 - [ ] Complete lifecycle works: close → exit → start → resume
+- [ ] Step 0.5 works seamlessly with session-closure clean state
 
 ---
 
@@ -557,4 +885,4 @@ For detailed information beyond task instructions, see:
 
 ---
 
-*Session-resume skill v1.3.1 - Working directory fixes*
+*Session-resume skill v1.3.7 - Porcelain v2 for all git status + Contextual uncommitted changes messaging + Fixed script paths (SKILL_BASE) + BLOCKING (Git Commit Protocol) + progressive disclosure*

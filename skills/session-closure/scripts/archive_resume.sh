@@ -1,6 +1,6 @@
 #!/bin/bash
 # archive_resume.sh - Archive CLAUDE_RESUME.md with timestamp
-# Part of session-closure skill v1.3.1
+# Part of session-closure skill v1.3.5
 #
 # Usage: ./archive_resume.sh [PROJECT_ROOT] [--dry-run]
 #
@@ -68,7 +68,22 @@ fi
 
 # Check if in git repo and file is tracked
 if in_git_repo && is_git_tracked "$SOURCE"; then
-    echo "✓ Resume tracked in git - skipping archive (git history is archive)"
+    # File is tracked - check if it has uncommitted changes
+    if git diff --quiet "$SOURCE" 2>/dev/null && git diff --cached --quiet "$SOURCE" 2>/dev/null; then
+        # Clean - no uncommitted changes
+        echo "✅ CLAUDE_RESUME.md tracked in git with no uncommitted changes"
+        echo "   Git history provides backup - safe to proceed"
+        echo "✓ Skipping archive (git history serves as backup)"
+    else
+        # Dirty - has uncommitted changes
+        echo "⚠️  CLAUDE_RESUME.md has uncommitted changes"
+        echo "   RECOMMENDED: Commit resume alone before making other changes"
+        echo ""
+        echo "   This preserves a clean checkpoint in git history."
+        echo "   Current changes will be committed by session-closure Step 0.5"
+        echo ""
+        echo "✓ Skipping archive (git will track changes)"
+    fi
     exit 0
 fi
 
