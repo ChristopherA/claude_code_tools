@@ -1,34 +1,5 @@
 #!/bin/bash
-# check_staleness.sh - Check resume age and return staleness level
-# Part of session-resume skill v1.3.1
-#
-# Usage: ./check_staleness.sh [PROJECT_ROOT]
-#
-# Arguments:
-#   PROJECT_ROOT - Path to project root directory (defaults to current directory)
-#                  Resume file should be at PROJECT_ROOT/CLAUDE_RESUME.md
-#
-# Extracts session date from resume and calculates age in days.
-# Returns staleness category: fresh|recent|stale|very_stale
-#
-# v1.3.1 updates:
-# - Accept PROJECT_ROOT parameter for working directory independence
-# - Change to project root before operating
-# - Verify project root (check for CLAUDE.md)
-#
-# v1.3.0 updates:
-# - Added cross-platform date command support (macOS BSD + Linux GNU)
-#
-# Staleness levels:
-# - fresh: <1 day
-# - recent: 1-6 days
-# - stale: 7-29 days
-# - very_stale: 30+ days
-#
-# Exit codes:
-# 0 - Success (staleness determined)
-# 1 - Error (file not found or date parsing failed)
-
+# Check resume age, output: fresh|recent|stale|very_stale
 set -e
 
 # Parse arguments

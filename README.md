@@ -337,16 +337,17 @@ Both skills follow best practices:
 
 ## Versions
 
-**Current**: v1.3.1 (November 7, 2025)
+**Current**: v1.3.8 (November 15, 2025)
 
 **Key Features**:
-- **NEW**: Working directory fixes - scripts work from any directory
-- **NEW**: Git backup step - automatic session state backup
+- **NEW**: Permission-free script execution (Issues 17, 18, 19 fixed)
+- **NEW**: Workspace-aware commit guidance (CORE_PROCESSES.md integration)
+- **NEW**: Deployment-tight architecture (57% size reduction to 124KB)
+- Working directory fixes - scripts work from any directory
+- Git backup step - automatic session state backup
 - Progressive disclosure architecture (76% token reduction)
 - Cross-platform support (macOS + Linux)
-- 12 reference files (4,200 lines on-demand documentation)
 - BSD-2-Clause-Patent LICENSE
-- 14 tests (20 assertions) all passing
 
 See [CHANGELOG.md](./CHANGELOG.md) for complete version history.
 

@@ -1,24 +1,5 @@
 #!/bin/bash
-# commit_resume.sh - Commit CLAUDE_RESUME.md after session closure
-# Part of session-closure skill v1.3.7
-#
-# Usage: ./commit_resume.sh [PROJECT_ROOT]
-#
-# Arguments:
-#   PROJECT_ROOT - Path to project root directory (defaults to current directory)
-#                  Should contain CLAUDE_RESUME.md to commit
-#
-# Behavior:
-# - Checks if in a git repository (skips if not)
-# - Uses git status --porcelain=v2 for reliable change detection
-# - Verifies ONLY CLAUDE_RESUME.md has uncommitted changes
-# - Commits with standardized message and flags (-S -s)
-# - Blocks if unexpected files changed (safety check)
-#
-# Exit codes:
-# 0 - Success (committed or skipped appropriately)
-# 1 - Error (unexpected changes or git failure)
-
+# Commit CLAUDE_RESUME.md with -S -s flags (blocks if unexpected files changed)
 set -e
 
 # Parse arguments

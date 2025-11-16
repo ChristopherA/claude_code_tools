@@ -1,22 +1,5 @@
 #!/bin/bash
-# archive_resume.sh - Archive CLAUDE_RESUME.md with timestamp
-# Part of session-closure skill v1.3.5
-#
-# Usage: ./archive_resume.sh [PROJECT_ROOT] [--dry-run]
-#
-# Arguments:
-#   PROJECT_ROOT - Path to project root directory (defaults to current directory)
-#                  Should contain CLAUDE.md to verify it's a project root
-#
-# Behavior:
-# - If CLAUDE_RESUME.md is tracked in git: Skip archiving (git history is archive)
-# - If CLAUDE_RESUME.md doesn't exist: Skip archiving (nothing to archive)
-# - Otherwise: Move to archives/CLAUDE_RESUME/<timestamp>.md
-#
-# Exit codes:
-# 0 - Success (archived or skipped appropriately)
-# 1 - Error
-
+# Archive CLAUDE_RESUME.md to archives/CLAUDE_RESUME/<timestamp>.md (skips if git-tracked)
 set -e
 
 # Parse arguments

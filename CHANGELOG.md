@@ -7,6 +7,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.8] - 2025-11-15
+
+### Added
+- **session-closure**: New `scripts/check_uncommitted_changes.sh` for Step 0.5 blocking
+- **session-resume**: New `scripts/check_uncommitted_changes.sh` for Step 0.5 blocking
+- **session-resume**: CORE_PROCESSES.md reference in Step 0.5 blocking message
+
+### Fixed
+- **Issue 17 (MEDIUM)**: session-resume Step 0.5 inline script permission prompts
+  - Extracted 60+ line inline bash to check_uncommitted_changes.sh
+  - Single permission entry eliminates repeated approval prompts
+  - Consistent with session-closure pattern (Issue 19)
+- **Issue 18 (MEDIUM)**: session-resume blocking message missing protocol guidance
+  - Added CORE_PROCESSES.md reference to Step 0.5 blocking output
+  - Guides users to workspace Git Commit Protocol
+  - Maintains correct security model (manual approval required)
+- **Issue 19 (MEDIUM)**: session-closure Step 0.5 inline script permission prompts
+  - Extracted inline bash to check_uncommitted_changes.sh
+  - Matches session-resume Issue 17 pattern
+  - Eliminates permission prompts for improved UX
+
+### Changed
+- **session-closure**: Updated version to v1.3.8
+- **session-resume**: Enhanced Step 0.5 with workspace-aware commit guidance
+
+### Cleanup
+- **Deployment-tight philosophy**: Removed bloat documentation files
+- **session-closure**: Deleted DESIGN_DECISIONS.md, IMPLEMENTATION_DETAILS.md
+- **session-resume**: Deleted DESIGN_DECISIONS.md
+- **Size reduction**: 288K → 124K (57% reduction, 164KB removed)
+- **Git diff**: 7,511 deletions, 637 insertions
+- Skills now execution-focused with essential documentation only
+
+### Testing
+- All scenarios validated in user-level skills
+- Functional equivalence confirmed post-cleanup
+- Both skills tested from project root
+- Script references validated
+- Platform: macOS (Darwin 25.1.0)
+
+### Deployment
+- Deployed to: claude_code_tools v1.3.8
+- Installation: Copy to ~/.claude/skills/ or use marketplace
+
+---
+
 ## [1.3.7] - 2025-11-14
 
 ### Added

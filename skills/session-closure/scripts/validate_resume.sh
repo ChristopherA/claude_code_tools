@@ -1,25 +1,5 @@
 #!/bin/bash
-# validate_resume.sh - Validate CLAUDE_RESUME.md structure
-# Part of session-closure skill v1.3.1
-#
-# Usage: ./validate_resume.sh [PROJECT_ROOT]
-#
-# Arguments:
-#   PROJECT_ROOT - Path to project root directory (defaults to current directory)
-#                  Resume file should be at PROJECT_ROOT/CLAUDE_RESUME.md
-#
-# Validates that a resume file contains required sections:
-# - Header with "Last Session:"
-# - "Last Activity" section
-# - "Pending Tasks" section
-# - "Next Session Focus" section
-# - Footer with "Resume created by session-closure"
-#
-# Exit codes:
-# 0 - Validation passed
-# 1 - Validation failed (missing required sections)
-# 2 - File not found
-
+# Validate CLAUDE_RESUME.md has required sections
 set -e
 
 # Parse arguments
