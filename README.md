@@ -310,39 +310,33 @@ Both skills follow best practices:
 ### Core Documentation
 - **[CHANGELOG.md](./CHANGELOG.md)** - Version history and release notes
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Contribution guidelines and development setup
-- **[PHASE_2_COMPLETE.md](./PHASE_2_COMPLETE.md)** - v1.3.0 implementation details
 
-### Examples
-- **[examples/](./examples/)** - Real-world workflow examples
-  - [Daily Workflow](./examples/daily-workflow.md) - Individual developer workflow
-  - [Team Coordination](./examples/team-coordination.md) - Team collaboration workflow
+### Guides
+- **[guides/](./guides/)** - Practical workflow tutorials
+  - [Solo Workflow](./guides/solo-workflow.md) - Individual developer workflow
+  - [Team Workflow](./guides/team-workflow.md) - Team collaboration with git
 
-### Skill-Specific Documentation
+### Skill Documentation
 
 **session-closure**: See `skills/session-closure/references/` for:
-- CONFIGURATION.md - Setup and hooks
-- TESTING.md - Test procedures
-- DEVELOPMENT.md - Script documentation
-- DESIGN_DECISIONS.md - Architecture rationale
-- IMPLEMENTATION_DETAILS.md - Technical details
-- TROUBLESHOOTING.md - Common issues
+- README.md - Installation and usage
+- CONTRIBUTING.md - Development guide
+- PERMISSIONS.md - Permission configuration
+- RESUME_FORMAT_v1.2.md - Resume format specification
 
 **session-resume**: See `skills/session-resume/references/` for:
-- CONFIGURATION.md - Setup and hooks
-- TESTING.md - Test procedures
-- DEVELOPMENT.md - Script documentation
-- DESIGN_DECISIONS.md - Architecture rationale
-- EXAMPLES.md - 13 usage scenarios
-- ROADMAP.md - Future enhancements
+- README.md - Installation and usage
+- CONTRIBUTING.md - Development guide
+- RESUME_FORMAT_v1.2.md - Resume format specification
 
 ## Versions
 
-**Current**: v1.3.8 (November 15, 2025)
+**Current**: v1.4.0 (December 4, 2025)
 
 **Key Features**:
-- **NEW**: Permission-free script execution (Issues 17, 18, 19 fixed)
-- **NEW**: Workspace-aware commit guidance (CORE_PROCESSES.md integration)
-- **NEW**: Deployment-tight architecture (57% size reduction to 124KB)
+- **NEW**: Git hooks enforcement (`~/.claude/hooks/git-commit-compliance.py`)
+- **NEW**: Consolidated Git Commit Protocol (hooks + CORE_PROCESSES.md)
+- **NEW**: 34 automated tests (skills + hooks)
 - Working directory fixes - scripts work from any directory
 - Git backup step - automatic session state backup
 - Progressive disclosure architecture (76% token reduction)

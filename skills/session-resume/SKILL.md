@@ -1,13 +1,13 @@
 ---
 name: session-resume
-version: 1.3.8
+version: 1.4.0
 description: >
   Load and process previous session context from CLAUDE_RESUME.md.
   Checks for uncommitted changes before loading (blocking). Uses
-  executable scripts for staleness detection, archive listing, and
-  uncommitted changes detection. Recognizes Project Status (inter-project
-  communication) and Sync Status (authoritative source tracking) sections.
-  Provides summary and highlights next session focus.
+  executable scripts for archive listing and uncommitted changes
+  detection. Recognizes Project Status (inter-project communication)
+  and Sync Status (authoritative source tracking) sections. Provides
+  summary and highlights next session focus.
 
   WHEN: User explicitly requests "resume", "load resume", "continue
   from last session", "what was I working on", "show previous session",
@@ -22,31 +22,153 @@ description: >
 
 ## Contents
 
-1. [Setup](#setup)
-2. [Resume Loading Steps](#resume-loading-steps)
+1. [Resume Loading Steps](#resume-loading-steps)
+   - [Step 0: Check Permissions](#step-0-check-permissions-one-time-setup)
    - [Step 0.5: Check for Uncommitted Changes](#step-05-check-for-uncommitted-changes-blocking)
    - [Step 1: Check for Resume File](#step-1-check-for-resume-file)
-   - [Step 2: Check Resume Age](#step-2-check-resume-age-staleness-detection)
-   - [Step 3: Load and Analyze Resume](#step-3-load-and-analyze-resume)
-   - [Step 4: Present Resume Summary](#step-4-present-resume-summary)
-   - [Step 5: Optional Actions](#step-5-optional-actions)
-3. [Git Commit Protocol](#git-commit-protocol)
-4. [Additional Documentation](#additional-documentation)
+   - [Step 2: Load and Analyze Resume](#step-2-load-and-analyze-resume)
+   - [Step 3: Present Resume Summary](#step-3-present-resume-summary)
+   - [Step 4: Optional Actions](#step-4-optional-actions)
+2. [Git Commit Protocol](#git-commit-protocol)
+3. [Additional Documentation](#additional-documentation)
 
 ---
 
-## Setup
+## Resume Loading Steps
 
-Before executing any steps, establish the skill base directory for script access:
+### Step 0: Check Permissions (ONE-TIME SETUP)
+
+**Purpose**: Verify session-skills permissions are configured to prevent repeated permission prompts.
+
+**Why this matters**:
+- Claude Code's interactive permission approval doesn't persist across sessions
+- Without pre-approved permissions, users get repeated prompts for every skill script
+- One-time setup enables smooth session-resume and session-closure operation
+
+**Implementation**:
+
+Run the permission check script:
 
 ```bash
-# Skill base directory - works in all contexts (project root, workspace root, subdirectories)
-SKILL_BASE="${SKILL_BASE:-$HOME/.claude/skills/session-resume}"
+"${SKILL_BASE:-$HOME/.claude/skills/session-resume}/scripts/check_permissions.sh" "${PROJECT_ROOT:-$PWD}"
 ```
 
-This ensures scripts can be found regardless of where the skill is invoked from.
+**Script behavior**:
+- **All permissions present**: Exits silently (code 0) → proceed to Step 0.5
+- **Permissions missing/outdated**: Exits with details (code 1) → offer configuration
+- **No settings file**: Exits with MISSING_FILE marker → offer to create
 
-## Resume Loading Steps
+**When configuration needed**:
+
+The script outputs structured information:
+1. **MISSING_REQUIRED**: Critical permissions needed for skills to function
+2. **MISSING_RECOMMENDED**: Optional permissions for better UX (git, rsync, etc.)
+3. **FOUND_OLD**: Deprecated patterns that should be removed (e.g., `session-*` wildcards)
+
+**Present configuration offer to user**:
+
+```markdown
+🔧 Session skills need one-time permission setup
+
+[If missing file:]
+No .claude/settings.local.json found. I'll create one with required permissions.
+
+[If missing patterns:]
+Missing required permissions ([count] patterns):
+- Skill(session-closure)
+- Skill(session-resume)
+- [List other missing REQUIRED patterns]
+
+[If old patterns found:]
+Found deprecated patterns ([count] to remove):
+- Bash(~/.claude/skills/session-closure/scripts/*)
+- [List other FOUND_OLD patterns]
+
+I can configure these automatically using this inline script:
+[Show inline bash script that will be executed]
+
+May I update .claude/settings.local.json to add these permissions?
+```
+
+**After user approval, execute inline configuration script**:
+
+```bash
+#!/bin/bash
+# Inline permission configuration script
+# Adds/updates .claude/settings.local.json with session-skills permissions
+
+PROJECT_DIR="${PROJECT_ROOT:-$PWD}"
+SETTINGS_FILE="$PROJECT_DIR/.claude/settings.local.json"
+
+# Create .claude directory if needed
+mkdir -p "$PROJECT_DIR/.claude"
+
+# Required permission patterns
+REQUIRED_PATTERNS='[
+  "Skill(session-closure)",
+  "Skill(session-resume)",
+  "Bash(\"${SKILL_BASE:-$HOME/.claude/skills/session-closure}/scripts/check_permissions.sh\" \"${PROJECT_ROOT:-$PWD}\")",
+  "Bash(\"${SKILL_BASE:-$HOME/.claude/skills/session-resume}/scripts/check_permissions.sh\" \"${PROJECT_ROOT:-$PWD}\")",
+  "Bash(\"${SKILL_BASE:-$HOME/.claude/skills/session-closure}/scripts/check_uncommitted_changes.sh\" \"${PROJECT_ROOT:-$PWD}\")",
+  "Bash(\"${SKILL_BASE:-$HOME/.claude/skills/session-closure}/scripts/archive_resume.sh\" \"${PROJECT_ROOT:-$PWD}\")",
+  "Bash(\"${SKILL_BASE:-$HOME/.claude/skills/session-closure}/scripts/validate_resume.sh\" \"${PROJECT_ROOT:-$PWD}\")",
+  "Bash(\"${SKILL_BASE:-$HOME/.claude/skills/session-closure}/scripts/commit_resume.sh\" \"${PROJECT_ROOT:-$PWD}\")",
+  "Bash(\"${SKILL_BASE:-$HOME/.claude/skills/session-resume}/scripts/check_uncommitted_changes.sh\" \"${PROJECT_ROOT:-$PWD}\")",
+  "Bash(\"${SKILL_BASE:-$HOME/.claude/skills/session-resume}/scripts/list_archives.sh\" \"${PROJECT_ROOT:-$PWD}\")",
+  "Bash(\"${SKILL_BASE:-$HOME/.claude/skills/session-resume}/scripts/check_staleness.sh\" \"${PROJECT_ROOT:-$PWD}\")",
+  "Read(~/.claude/skills/session-closure/**)",
+  "Read(~/.claude/skills/session-resume/**)"
+]'
+
+# Old patterns to remove
+OLD_PATTERNS=(
+  'Bash(~/.claude/skills/session-closure/scripts/*)'
+  'Bash(~/.claude/skills/session-resume/scripts/*)'
+)
+
+if [ ! -f "$SETTINGS_FILE" ]; then
+  # Create new settings file
+  cat > "$SETTINGS_FILE" <<EOF
+{
+  "permissions": {
+    "allow": $REQUIRED_PATTERNS,
+    "deny": [],
+    "ask": []
+  }
+}
+EOF
+  echo "✅ Created $SETTINGS_FILE with session-skills permissions"
+else
+  # Merge with existing file using jq
+  if command -v jq >/dev/null 2>&1; then
+    # Parse required patterns as JSON array
+    REQUIRED_JSON=$(echo "$REQUIRED_PATTERNS" | jq -c '.')
+
+    # Read existing permissions, add new ones, remove old ones, deduplicate
+    jq --argjson new "$REQUIRED_JSON" \
+       '.permissions.allow = ([.permissions.allow[], $new[]] | unique) |
+        .permissions.allow -= ["Bash(~/.claude/skills/session-closure/scripts/*)", "Bash(~/.claude/skills/session-resume/scripts/*)"]' \
+       "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp" && mv "$SETTINGS_FILE.tmp" "$SETTINGS_FILE"
+
+    echo "✅ Updated $SETTINGS_FILE with session-skills permissions"
+  else
+    echo "⚠️  jq not found - manual merge required"
+    echo "Add these patterns to permissions.allow array:"
+    echo "$REQUIRED_PATTERNS"
+  fi
+fi
+```
+
+**After configuration**:
+- Proceed to Step 0.5 (uncommitted changes check)
+- Future sessions will skip this step (permissions already configured)
+
+**Error handling**:
+- Script not found: Display error, proceed with warning (user will get permission prompts)
+- Script fails: Display error, proceed with warning
+- User declines: Proceed anyway (user will approve permissions interactively)
+
+---
 
 ### Step 0.5: Check for Uncommitted Changes (BLOCKING)
 
@@ -63,7 +185,7 @@ This ensures scripts can be found regardless of where the skill is invoked from.
 Run the uncommitted changes detection script:
 
 ```bash
-"$SKILL_BASE/scripts/check_uncommitted_changes.sh" "$PWD"
+"${SKILL_BASE:-$HOME/.claude/skills/session-resume}/scripts/check_uncommitted_changes.sh" "${PROJECT_ROOT:-$PWD}"
 ```
 
 **Script behavior**:
@@ -112,7 +234,7 @@ When uncommitted changes are detected, you MUST commit them before proceeding. F
 2. **If CLAUDE_RESUME.md not found**, check archives:
 
    ```bash
-   "$SKILL_BASE/scripts/list_archives.sh" "$PWD" --format detailed
+   "${SKILL_BASE:-$HOME/.claude/skills/session-resume}/scripts/list_archives.sh" "${PROJECT_ROOT:-$PWD}" --format detailed
    ```
 
    **Script output**:
@@ -130,44 +252,7 @@ When uncommitted changes are detected, you MUST commit them before proceeding. F
    2. Load a specific archive (if any exist)
    ```
 
-### Step 2: Check Resume Age (Staleness Detection)
-
-Use the staleness check script:
-
-```bash
-STALENESS=$("$SKILL_BASE/scripts/check_staleness.sh" "$PWD")
-```
-
-**Script output** (one of):
-- `fresh` - <1 day old, no warning needed
-- `recent` - 1-6 days old, note age
-- `stale` - 7-29 days old, show warning
-- `very_stale` - 30+ days old, strong warning
-- `error` - Cannot determine (missing date or file)
-
-**Present warnings**:
-
-**If stale**:
-```markdown
-⚠️  Resume is from [Date] ([N] days old)
-
-This may be stale. Do you want to:
-1. Continue with this context
-2. Review it first then decide
-3. Check archives for a more recent session
-```
-
-**If very_stale**:
-```markdown
-⚠️  Resume is from [Date] ([N] days old - VERY STALE)
-
-This context is likely outdated. Consider:
-1. Starting fresh
-2. Reviewing archives for more recent session
-3. Continuing anyway (not recommended)
-```
-
-### Step 3: Load and Analyze Resume
+### Step 2: Load and Analyze Resume
 
 1. **Read CLAUDE_RESUME.md** completely
 
@@ -180,19 +265,15 @@ This context is likely outdated. Consider:
    - Key Decisions (if present)
    - Insights & Learnings (if present)
 
-3. **Check resume mode** (from footer):
-   - Full mode: Complete context available
-   - Minimal mode: Essential only, may need expansion
-   - Note in presentation if minimal
-
-4. **Check Sync Status** (if present):
+3. **Check Sync Status** (if present):
    - If sync dates are >7 days old: Warn user
    - If "current": Note that sources are up-to-date
    - If missing: No sync concerns
 
-### Step 4: Present Resume Summary
+### Step 3: Present Resume Summary
 
-**Standard presentation**:
+Present the resume to the user:
+
 ```markdown
 📋 Resuming from [Date] session:
 
@@ -216,23 +297,7 @@ This context is likely outdated. Consider:
 Full context loaded. Ready to continue.
 ```
 
-**Minimal resume presentation**:
-```markdown
-📋 Resuming from [Date] session (Essential resume):
-
-**Last activity**: [Summary]
-
-**Next focus**: [Next steps]
-
-**Pending**: [Count] tasks
-
-⚠️  This was an essential resume (limited context during creation).
-You may want to expand it with additional details before continuing.
-
-Ready to continue or expand context?
-```
-
-### Step 5: Optional Actions
+### Step 4: Optional Actions
 
 After presenting resume, offer:
 
@@ -242,13 +307,7 @@ After presenting resume, offer:
    (Moves to archives/CLAUDE_RESUME/ with timestamp)
    ```
 
-2. **Expand minimal resume** (if applicable):
-   ```markdown
-   This resume was created in minimal mode. Would you like me to
-   help expand it with additional context before we continue?
-   ```
-
-3. **Ready to work**:
+2. **Ready to work**:
    ```markdown
    Ready to continue where you left off!
    ```
@@ -256,114 +315,35 @@ After presenting resume, offer:
 
 ## Git Commit Protocol
 
-**When Step 0.5 blocks due to uncommitted changes, use this protocol to commit them.**
+See **CORE_PROCESSES.md § Git Commit Protocol** for complete requirements.
 
-### Required Commit Flags
+**Quick reference**:
+- Required: `git commit -S -s -m "message"`
+- Never: Claude attribution (hook enforced)
+- Always: Request user approval before committing
 
-**ALWAYS use these flags**:
-```bash
-git commit -S -s -m "message"
-```
+**Hook enforcement** (`~/.claude/hooks/`):
 
-**Flags explained**:
-- `-S`: GPG/SSH sign the commit (verifies integrity, required for Git Inception)
-- `-s`: Add Signed-off-by line (DCO - establishes accountability)
+| Hook | Enforces |
+|------|----------|
+| git-commit-compliance.py | -S -s flags, message quality (≥10 chars), no attribution |
+| git-workflow-guidance.py | Separate git add from git commit |
 
-### Commit Message Format
-
-**Title line** (required):
-- **Maximum 50 characters**
-- Present tense imperative: "Add", "Fix", "Update" (NOT "Added", "Fixed", "Updated")
-- No period at end
-- Examples: "Add session resume validation", "Fix uncommitted changes check"
-
-**Body** (optional but recommended):
-- Separate from title with blank line
-- Bullet points for multi-file changes
-- Explain what and why, not how
-- Examples:
-  ```
-  Add uncommitted changes detection to session-resume
-
-  - Extract Step 0.5 to check_uncommitted_changes.sh
-  - Block resume when git state is dirty
-  - Display full diffs and untracked file contents
-  - Provide clear commit instructions
-  ```
-
-### Attribution Policy
-
-**NEVER include Claude Code attribution**:
-
-❌ **DO NOT add**:
-```
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>
-```
-
-**Why**: User reviews and approves all changes. GPG signature and Signed-off-by establish actual accountability.
-
-### Commit Approval Process
-
-**CRITICAL**: All commits require explicit user approval.
-
-**When blocked by uncommitted changes**:
-1. **Review changes**: Script displays full diffs
-2. **Display preview**: Show files being staged and proposed message
-3. **Request approval**: User must explicitly approve
-4. **Execute commit**: Only after approval received
-
-**Never**:
-- Commit without showing user what will be committed
-- Skip the -S -s flags
-- Include Claude Code attribution
-- Bypass approval process
-
-### Example Workflow
-
-**When Step 0.5 blocks**:
-```markdown
-I see uncommitted changes that need to be committed before resuming:
-
-Files to commit:
-- CLAUDE_RESUME.md (modified)
-- claude/processes/new-feature.md (new file)
-
-Proposed commit message:
-"Add new feature documentation
-
-- Document feature X in processes
-- Update resume with session progress"
-
-This will be committed with: git commit -S -s
-
-May I proceed with this commit?
-```
-
-**After user approval**:
-```bash
-git add CLAUDE_RESUME.md claude/processes/new-feature.md
-git commit -S -s -m "Add new feature documentation
-
-- Document feature X in processes
-- Update resume with session progress"
-```
-
-### Reference
-
-This is an abbreviated protocol for session-resume blocking scenarios. For complete details, see:
-- **CORE_PROCESSES.md § Git Commit Protocol** (workspace-level)
-- **LOCAL_CONTEXT.md** (project-specific variations)
+**Workflow when Step 0.5 blocks**:
+1. `git status` - See what's changed
+2. `git diff` - Understand changes
+3. `git add <files>` - Stage specific changes
+4. `git diff --staged` - Review staged changes
+5. `git commit -S -s -m "..."` - Commit with descriptive message
 
 ---
 
 ## Additional Documentation
 
-- **references/CONFIGURATION.md** - Setup and installation
-- **references/EXAMPLES.md** - Usage examples
-- **references/RESUME_FORMAT_v1.2.md** - Resume format specification
+- **references/README.md** - Installation, usage examples, and workflow integration
+- **references/RESUME_FORMAT_v1.2.md** - Resume format specification (required reading)
+- **references/CONTRIBUTING.md** - Development, testing, and contribution guide
 
 ---
 
-*Session-resume skill v1.3.8 - Extracted Step 0.5 to check_uncommitted_changes.sh (Issue 17: eliminates permission prompts) + CORE_PROCESSES.md reference in blocking message (Issue 18: workspace-aware commit guidance) + Automated resume workflow*
+*Session-resume skill v1.4.0 - Git Commit Protocol consolidated to hooks + CORE_PROCESSES.md reference (December 2025)*

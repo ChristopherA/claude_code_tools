@@ -7,6 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.0] - 2025-12-04
+
+### Added
+- **Git Hooks**: New `~/.claude/hooks/` enforcement for Git Commit Protocol
+  - `git-commit-compliance.py`: Enforces -S -s flags, blocks Claude attribution, validates message quality
+  - `git-workflow-guidance.py`: Blocks combined git add + git commit operations
+  - `README.md`: Comprehensive hook documentation
+  - `tests/test_hooks.sh`: 14 automated tests for hook validation
+- **session-closure**: Reference file consolidation (README.md, CONTRIBUTING.md, PERMISSIONS.md)
+- **session-resume**: Reference file consolidation (README.md, CONTRIBUTING.md)
+
+### Fixed
+- **HEREDOC bypass**: Fixed vulnerability where HEREDOC commit messages bypassed content validation
+  - `git-commit-compliance.py`: Now extracts and validates HEREDOC content
+  - Blocks prohibited Claude/Anthropic attribution in HEREDOC messages
+- **Test scripts**: Updated interface to use PROJECT_ROOT parameter
+  - `session-closure/tests/test_scripts.sh`: Fixed 2 failing tests
+  - `session-resume/tests/test_scripts.sh`: Fixed 3 failing tests
+  - All 34 tests now passing (20 skill tests + 14 hook tests)
+
+### Changed
+- **Git Commit Protocol**: Consolidated from skill documentation to hooks + CORE_PROCESSES.md
+  - Skills now reference CORE_PROCESSES.md instead of duplicating ~200 lines
+  - Hook enforcement replaces documentation-based reminders
+- **Documentation**: `examples/` refactored to `guides/`
+  - Renamed folder and files for clarity
+  - Updated content for v1.4.0 (removed mode references, added hook info)
+  - 817 → 345 lines (58% reduction)
+
+### Removed
+- **Distribution bloat**: Deleted historical completion documents
+  - `PHASE_1_COMPLETE.md` (6.9KB)
+  - `PHASE_2_COMPLETE.md` (18.9KB)
+  - `archives/` directory (empty placeholder)
+
+### Testing
+- All skill scenarios validated (20 tests)
+- Hook enforcement validated (14 tests)
+- Test coverage: session-closure (12), session-resume (8), hooks (14)
+- Platform: macOS (Darwin 25.1.0)
+
+### Deployment
+- Deployed to: claude_code_tools v1.4.0
+- Hooks location: ~/.claude/hooks/
+- Installation: Copy skills to ~/.claude/skills/, hooks to ~/.claude/hooks/
+
+---
+
 ## [1.3.8] - 2025-11-15
 
 ### Added

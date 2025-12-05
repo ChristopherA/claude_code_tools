@@ -63,14 +63,29 @@ fi
 # Only CLAUDE_RESUME.md changed - safe to commit
 git add CLAUDE_RESUME.md
 
+# Show what's being committed
+echo "=== Staged changes ==="
+git diff --staged CLAUDE_RESUME.md
+
 # Commit with standardized message
 # Note: This is a minimal template. Claude should enhance this message based on:
-# - Workspace commit protocols (if CORE_PROCESSES.md exists)
+# - Workspace commit protocols (CORE_PROCESSES.md § Git Commit Protocol)
 # - Resume content (summarize what was accomplished)
 # - Session significance (bug fixes, milestones, etc.)
+#
+# WARNING: NEVER include Claude Code attribution or Co-Authored-By: Claude
+#          User reviews/approves changes. GPG -S -s flags establish accountability.
 git commit -S -s -m "Session closure: $(date +%Y-%m-%d-%H%M)
 
 Resume created with session state."
+
+# Verify no Claude attribution in commit message (protocol compliance check)
+COMMIT_MSG=$(git log -1 --format=%B)
+if echo "$COMMIT_MSG" | grep -qi "claude code\|co-authored-by.*claude\|generated with"; then
+    echo "⚠️  WARNING: Commit contains Claude attribution (protocol violation)" >&2
+    echo "   This violates workspace Git Commit Protocol" >&2
+    echo "   User should amend: git commit --amend" >&2
+fi
 
 echo "✅ Session resume committed"
 exit 0

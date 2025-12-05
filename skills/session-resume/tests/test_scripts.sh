@@ -1,6 +1,6 @@
 #!/bin/bash
 # test_scripts.sh - Test suite for session-resume scripts
-# Part of session-resume skill v1.1.0
+# Part of session-resume skill
 #
 # Usage: ./test_scripts.sh
 #
@@ -49,6 +49,8 @@ setup_test_env() {
     rm -rf "$TEMP_DIR"
     mkdir -p "$TEMP_DIR"
     cd "$TEMP_DIR"
+    # Create minimal CLAUDE.md (required by some scripts)
+    echo "# Test Project" > CLAUDE.md
 }
 
 cleanup_test_env() {
@@ -143,17 +145,33 @@ test_staleness_fresh() {
 
     setup_test_env
 
-    # Setup: Use fresh resume fixture
-    cp "$FIXTURE_DIR/fresh_resume.md" CLAUDE_RESUME.md
+    # Setup: Create resume with today's date (guaranteed fresh)
+    TODAY_DATE=$(date "+%B %d, %Y" | sed 's/  / /g')  # "December 04, 2025" format
+    cat > CLAUDE_RESUME.md <<EOF
+# Claude Resume - Test Project
 
-    # Execute: check staleness
-    OUTPUT=$("$SCRIPT_DIR/check_staleness.sh" CLAUDE_RESUME.md 2>&1)
+**Last Session**: $TODAY_DATE
 
-    # Verify: Reports fresh (or recent if run on different day)
-    if [[ "$OUTPUT" == "fresh" ]] || [[ "$OUTPUT" == "recent" ]]; then
+## Last Activity Completed
+Testing.
+
+## Pending Tasks
+- [ ] Test
+
+## Next Session Focus
+Continue.
+
+*Resume created by session-closure v1.4.0*
+EOF
+
+    # Execute: check staleness (pass current directory as PROJECT_ROOT)
+    OUTPUT=$("$SCRIPT_DIR/check_staleness.sh" . 2>&1)
+
+    # Verify: Reports fresh
+    if [[ "$OUTPUT" == "fresh" ]]; then
         pass "Fresh resume detected correctly"
     else
-        fail "Expected 'fresh' or 'recent', got: $OUTPUT"
+        fail "Expected 'fresh', got: $OUTPUT"
     fi
 
     cleanup_test_env
@@ -170,8 +188,8 @@ test_staleness_stale() {
     # Setup: Use stale resume fixture (October 15, 2025)
     cp "$FIXTURE_DIR/stale_resume.md" CLAUDE_RESUME.md
 
-    # Execute: check staleness
-    OUTPUT=$("$SCRIPT_DIR/check_staleness.sh" CLAUDE_RESUME.md 2>&1)
+    # Execute: check staleness (pass current directory as PROJECT_ROOT)
+    OUTPUT=$("$SCRIPT_DIR/check_staleness.sh" . 2>&1)
 
     # Verify: Reports stale or very_stale (depending on current date)
     if [[ "$OUTPUT" == "stale" ]] || [[ "$OUTPUT" == "very_stale" ]]; then
@@ -191,14 +209,17 @@ test_staleness_missing() {
 
     setup_test_env
 
-    # Execute: check staleness on non-existent file (allow error exit code)
+    # Don't create CLAUDE_RESUME.md - test missing resume handling
+    # Note: CLAUDE.md exists from setup_test_env
+
+    # Execute: check staleness on directory with no resume (allow error exit code)
     set +e  # Temporarily disable exit on error
-    OUTPUT=$("$SCRIPT_DIR/check_staleness.sh" nonexistent.md 2>&1)
+    OUTPUT=$("$SCRIPT_DIR/check_staleness.sh" . 2>&1)
     set -e  # Re-enable exit on error
 
     # Verify: Reports error
     if [[ "$OUTPUT" == "error" ]]; then
-        pass "Missing file handled correctly"
+        pass "Missing resume handled correctly"
     else
         fail "Expected 'error', got: $OUTPUT"
     fi

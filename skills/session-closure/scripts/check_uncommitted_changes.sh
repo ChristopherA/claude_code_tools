@@ -1,5 +1,11 @@
 #!/bin/bash
 # Detect uncommitted changes, exit 0=clean, 1=changes-found, 2=error
+#
+# IMPORTANT: This script is duplicated in both session-closure and session-resume
+# Any changes must be synchronized manually between:
+#   ~/.claude/skills/session-closure/scripts/check_uncommitted_changes.sh
+#   ~/.claude/skills/session-resume/scripts/check_uncommitted_changes.sh
+# Run tests/test_sync.sh to verify files remain identical
 set -euo pipefail
 
 # Accept working directory parameter (required)

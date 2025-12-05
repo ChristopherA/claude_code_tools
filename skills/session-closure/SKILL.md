@@ -1,9 +1,8 @@
 ---
 name: session-closure
-version: 1.3.8
+version: 1.4.0
 description: >
-  Execute session closure protocol with resume creation. Supports
-  full and minimal modes based on available context. Automatically
+  Execute session closure protocol with resume creation. Automatically
   archives previous resumes unless tracked in git. Uses executable
   scripts for consistent archiving, validation, and commits. Creates
   resumes with Project Status (inter-project communication) and Sync
@@ -25,7 +24,7 @@ description: >
 ## Contents
 
 1. [Closure Steps](#closure-steps)
-   - [Step 0: Determine Operational Mode](#step-0-determine-operational-mode)
+   - [Step 0: Check Permissions](#step-0-check-permissions-one-time-setup)
    - [Step 0.5: Handle ALL Uncommitted Changes](#step-05-handle-all-uncommitted-changes)
    - [Step 1: Archive Existing Resume](#step-1-archive-existing-resume)
    - [Step 2: Assess Session State](#step-2-assess-session-state)
@@ -39,25 +38,139 @@ description: >
 
 ## Closure Steps
 
-### Step 0: Determine Operational Mode
+### Step 0: Check Permissions (ONE-TIME SETUP)
 
-Check available context budget:
+**Purpose**: Verify session-skills permissions are configured to prevent repeated permission prompts.
 
-**Full Mode** (>30k tokens remaining):
-- Complete session analysis with all resume sections
-- Detailed insights and learnings
-- Archive with full provenance
+**Why this matters**:
+- Claude Code's interactive permission approval doesn't persist across sessions
+- Without pre-approved permissions, users get repeated prompts for every skill script
+- One-time setup enables smooth session-resume and session-closure operation
 
-**Minimal Mode** (<30k tokens remaining):
-- Essential state only, abbreviated sections
-- Archive with basic provenance
-- Notify: "⚠️ Limited context - creating essential resume"
+**Implementation**:
 
-**Emergency Mode** (critically low):
-- Output resume template to chat for manual save
-- Notify: "❌ Insufficient context for file creation - please save from chat"
+Run the permission check script:
 
-*Select appropriate mode based on remaining context. Default to Full Mode.*
+```bash
+"${SKILL_BASE:-$HOME/.claude/skills/session-closure}/scripts/check_permissions.sh" "${PROJECT_ROOT:-$PWD}"
+```
+
+**Script behavior**:
+- **All permissions present**: Exits silently (code 0) → proceed to Step 0.5
+- **Permissions missing/outdated**: Exits with details (code 1) → offer configuration
+- **No settings file**: Exits with MISSING_FILE marker → offer to create
+
+**When configuration needed**:
+
+The script outputs structured information:
+1. **MISSING_REQUIRED**: Critical permissions needed for skills to function
+2. **MISSING_RECOMMENDED**: Optional permissions for better UX (git, rsync, etc.)
+3. **FOUND_OLD**: Deprecated patterns that should be removed (e.g., `session-*` wildcards)
+
+**Present configuration offer to user**:
+
+```markdown
+🔧 Session skills need one-time permission setup
+
+[If missing file:]
+No .claude/settings.local.json found. I'll create one with required permissions.
+
+[If missing patterns:]
+Missing required permissions ([count] patterns):
+- Skill(session-closure)
+- Skill(session-resume)
+- [List other missing REQUIRED patterns]
+
+[If old patterns found:]
+Found deprecated patterns ([count] to remove):
+- Bash(~/.claude/skills/session-closure/scripts/*)
+- [List other FOUND_OLD patterns]
+
+I can configure these automatically using this inline script:
+[Show inline bash script that will be executed]
+
+May I update .claude/settings.local.json to add these permissions?
+```
+
+**After user approval, execute inline configuration script**:
+
+```bash
+#!/bin/bash
+# Inline permission configuration script
+# Adds/updates .claude/settings.local.json with session-skills permissions
+
+PROJECT_DIR="${PROJECT_ROOT:-$PWD}"
+SETTINGS_FILE="$PROJECT_DIR/.claude/settings.local.json"
+
+# Create .claude directory if needed
+mkdir -p "$PROJECT_DIR/.claude"
+
+# Required permission patterns
+REQUIRED_PATTERNS='[
+  "Skill(session-closure)",
+  "Skill(session-resume)",
+  "Bash(\"${SKILL_BASE:-$HOME/.claude/skills/session-closure}/scripts/check_permissions.sh\" \"${PROJECT_ROOT:-$PWD}\")",
+  "Bash(\"${SKILL_BASE:-$HOME/.claude/skills/session-resume}/scripts/check_permissions.sh\" \"${PROJECT_ROOT:-$PWD}\")",
+  "Bash(\"${SKILL_BASE:-$HOME/.claude/skills/session-closure}/scripts/check_uncommitted_changes.sh\" \"${PROJECT_ROOT:-$PWD}\")",
+  "Bash(\"${SKILL_BASE:-$HOME/.claude/skills/session-closure}/scripts/archive_resume.sh\" \"${PROJECT_ROOT:-$PWD}\")",
+  "Bash(\"${SKILL_BASE:-$HOME/.claude/skills/session-closure}/scripts/validate_resume.sh\" \"${PROJECT_ROOT:-$PWD}\")",
+  "Bash(\"${SKILL_BASE:-$HOME/.claude/skills/session-closure}/scripts/commit_resume.sh\" \"${PROJECT_ROOT:-$PWD}\")",
+  "Bash(\"${SKILL_BASE:-$HOME/.claude/skills/session-resume}/scripts/check_uncommitted_changes.sh\" \"${PROJECT_ROOT:-$PWD}\")",
+  "Bash(\"${SKILL_BASE:-$HOME/.claude/skills/session-resume}/scripts/list_archives.sh\" \"${PROJECT_ROOT:-$PWD}\")",
+  "Bash(\"${SKILL_BASE:-$HOME/.claude/skills/session-resume}/scripts/check_staleness.sh\" \"${PROJECT_ROOT:-$PWD}\")",
+  "Read(~/.claude/skills/session-closure/**)",
+  "Read(~/.claude/skills/session-resume/**)"
+]'
+
+# Old patterns to remove
+OLD_PATTERNS=(
+  'Bash(~/.claude/skills/session-closure/scripts/*)'
+  'Bash(~/.claude/skills/session-resume/scripts/*)'
+)
+
+if [ ! -f "$SETTINGS_FILE" ]; then
+  # Create new settings file
+  cat > "$SETTINGS_FILE" <<EOF
+{
+  "permissions": {
+    "allow": $REQUIRED_PATTERNS,
+    "deny": [],
+    "ask": []
+  }
+}
+EOF
+  echo "✅ Created $SETTINGS_FILE with session-skills permissions"
+else
+  # Merge with existing file using jq
+  if command -v jq >/dev/null 2>&1; then
+    # Parse required patterns as JSON array
+    REQUIRED_JSON=$(echo "$REQUIRED_PATTERNS" | jq -c '.')
+
+    # Read existing permissions, add new ones, remove old ones, deduplicate
+    jq --argjson new "$REQUIRED_JSON" \
+       '.permissions.allow = ([.permissions.allow[], $new[]] | unique) |
+        .permissions.allow -= ["Bash(~/.claude/skills/session-closure/scripts/*)", "Bash(~/.claude/skills/session-resume/scripts/*)"]' \
+       "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp" && mv "$SETTINGS_FILE.tmp" "$SETTINGS_FILE"
+
+    echo "✅ Updated $SETTINGS_FILE with session-skills permissions"
+  else
+    echo "⚠️  jq not found - manual merge required"
+    echo "Add these patterns to permissions.allow array:"
+    echo "$REQUIRED_PATTERNS"
+  fi
+fi
+```
+
+**After configuration**:
+- Proceed to Step 0.5 (uncommitted changes check)
+- Future sessions will skip this step (permissions already configured)
+
+**Error handling**:
+- Script not found: Display error, proceed with warning (user will get permission prompts)
+- Script fails: Display error, proceed with warning
+- User declines: Proceed anyway (user will approve permissions interactively)
+
+---
 
 ### Step 0.5: Handle ALL Uncommitted Changes
 
@@ -70,8 +183,7 @@ Before archiving or creating new resume, check for ANY uncommitted changes in th
 Run the uncommitted changes detection script:
 
 ```bash
-SKILL_BASE="${SKILL_BASE:-$HOME/.claude/skills/session-closure}"
-"$SKILL_BASE/scripts/check_uncommitted_changes.sh" "$PWD"
+"${SKILL_BASE:-$HOME/.claude/skills/session-closure}/scripts/check_uncommitted_changes.sh" "${PROJECT_ROOT:-$PWD}"
 ```
 
 **Script behavior**:
@@ -104,7 +216,7 @@ When uncommitted changes are detected, you MUST commit them before proceeding:
    LOCAL_CONTEXT.md: [what changed]
    [other files]: [what changed]"
    ```
-4. **User says "close context" again** → Step 0.5 passes (clean state)
+4. **User says "close context" again** → Step 0 passes (clean state)
 5. **Continue closure** → Proceed to Step 1
 
 **Why blocking is necessary**:
@@ -123,8 +235,7 @@ When uncommitted changes are detected, you MUST commit them before proceeding:
 Run archive script before creating new resume:
 
 ```bash
-SKILL_BASE="${SKILL_BASE:-$HOME/.claude/skills/session-closure}"
-"$SKILL_BASE/scripts/archive_resume.sh" "$PWD"
+"${SKILL_BASE:-$HOME/.claude/skills/session-closure}/scripts/archive_resume.sh" "${PROJECT_ROOT:-$PWD}"
 ```
 
 **Script behavior**:
@@ -140,11 +251,9 @@ SKILL_BASE="${SKILL_BASE:-$HOME/.claude/skills/session-closure}"
 
 ### Step 2: Assess Session State
 
-Analyze session based on operational mode:
+Analyze the session: What completed? What decisions made and why? Tasks pending? Blockers? Insights? Critical context?
 
-**Full Mode**: What completed? What decisions made and why? Tasks pending? Blockers? Insights? Critical context?
-
-**Minimal Mode**: What done? What next? Blockers?
+If context is limited, focus on essential state. Optional sections (Key Decisions, Insights & Learnings) can be skipped.
 
 ### Step 3: Create CLAUDE_RESUME.md
 
@@ -152,7 +261,24 @@ Analyze session based on operational mode:
 
 **Format**: See `references/RESUME_FORMAT_v1.2.md` for complete specification.
 
-**Full Mode sections**:
+**BEFORE creating file, verify you will include ALL required sections:**
+
+**Required sections** (verify before writing):
+- [ ] Header with `**Last Session**: [date]`, duration, overall status
+- [ ] `## Last Activity Completed`
+- [ ] `## Pending Tasks`
+- [ ] `## Session Summary`
+- [ ] `## Project Status` (required)
+- [ ] `## Next Session Focus`
+- [ ] Footer: `*Resume created by session-closure v[version]: [timestamp]*`
+
+**Optional sections** (include if applicable and context allows):
+- [ ] `## Key Decisions Made`
+- [ ] `## Insights & Learnings`
+- [ ] `## Sync Status` (only if external authoritative sources exist)
+
+**After verifying checklist, create file with these sections:**
+
 - Header (project name, date, duration, status)
 - Last Activity Completed
 - Pending Tasks
@@ -164,20 +290,12 @@ Analyze session based on operational mode:
 - Next Session Focus
 - Footer (version, timestamp, instructions)
 
-**Minimal Mode sections**:
-- Header (abbreviated)
-- Last Activity (1 paragraph max)
-- Pending (critical tasks only)
-- Project Status (state + priority only)
-- Next (1 paragraph)
-- Footer (notes "Essential resume")
-
 ### Step 4: Verify Resume Creation
 
 Validate resume after creation:
 
 ```bash
-"$SKILL_BASE/scripts/validate_resume.sh" "$PWD"
+"${SKILL_BASE:-$HOME/.claude/skills/session-closure}/scripts/validate_resume.sh" "${PROJECT_ROOT:-$PWD}"
 ```
 
 **Checks**: File exists, required sections present, footer format correct.
@@ -190,17 +308,19 @@ Validate resume after creation:
 
 ### Step 5: Commit New Resume
 
-If project is git repository, commit the new resume.
+See **CORE_PROCESSES.md § Git Commit Protocol** for commit requirements.
 
-**Important**: Step 0.5 committed pre-existing changes. This step should ONLY see CLAUDE_RESUME.md.
+**Quick reference**: `git commit -S -s -m "message"` (no Claude attribution)
+
+Run commit script:
 
 ```bash
-"$SKILL_BASE/scripts/commit_resume.sh" "$PWD"
+"${SKILL_BASE:-$HOME/.claude/skills/session-closure}/scripts/commit_resume.sh" "${PROJECT_ROOT:-$PWD}"
 ```
 
-**What script does**:
+**Script behavior**:
 - Verifies ONLY CLAUDE_RESUME.md has uncommitted changes
-- Commits with standardized message and flags (-S -s)
+- Commits with standardized message and -S -s flags
 - Blocks if unexpected files changed (safety check)
 
 **Output**:
@@ -209,68 +329,33 @@ If project is git repository, commit the new resume.
 - `✓ Not a git repository` - Skipped
 - `❌ ERROR: Unexpected changes detected` - Unexpected files modified
 
-**Commit message enhancement**:
-
-Claude should enhance the minimal template based on:
-1. **Workspace commit protocols** (check CORE_PROCESSES.md)
-2. **Session content** (Last Activity, accomplishments, issues)
-3. **Session significance** (milestones, testing, decisions, blockers)
-
-Example enhanced commit:
-```
-Session closure: 2025-11-13-2345
-
-Resume documenting Issue 16 discovery:
-- Reviewed session-closure execution problems
-- Documented UX issues and solution options
-- Severity: MEDIUM (works with workarounds)
-- Commit: 518ae2a
-
-Signed-off-by: @ChristopherA <ChristopherA@LifeWithAlacrity.com>
-```
-
-**Why enhance**: Workspace protocols may require detailed messages, git history becomes more valuable, aligns with professional practices.
+**Hook enforcement**: User-level hooks (`~/.claude/hooks/`) validate all commits:
+- `git-commit-compliance.py`: -S -s flags, message quality, no attribution
+- `git-workflow-guidance.py`: Separate git add from git commit
 
 ### Step 6: Confirmation
 
 Report completion after validation:
 
-**Full Mode**:
 ```markdown
 ✅ Session closure complete.
 
 📄 CLAUDE_RESUME.md created and validated
 [Archive output if applicable]
-[Mode: Full Mode / Minimal Mode]
 
 Summary: [One sentence about session outcome]
 
 💡 Next session: Say "resume" to continue from here.
-
----
-*Resume created by session-closure v1.3.7: [Timestamp]*
-```
-
-**Minimal Mode**:
-```markdown
-⚠️  Session closure complete (Minimal Mode - limited context).
-
-📄 Essential resume created and validated
-[Archive output if applicable]
-
-Summary: [One sentence]
-
-💡 Next session: Say "resume" to continue. Consider expanding resume with details.
 ```
 
 ---
 
 ## Additional Documentation
 
-- **references/CONFIGURATION.md** - Setup and installation
-- **references/TROUBLESHOOTING.md** - Common issues
-- **references/RESUME_FORMAT_v1.2.md** - Complete resume format specification
+- **references/README.md** - Installation, usage, and troubleshooting guide
+- **references/RESUME_FORMAT_v1.2.md** - Complete resume format specification (required reading)
+- **references/CONTRIBUTING.md** - Development, testing, and contribution guide
 
 ---
 
-*Session-closure skill v1.3.8 - Extracted Step 0.5 inline script to check_uncommitted_changes.sh (Issue 19: eliminates permission prompts)*
+*Session-closure skill v1.4.0 - Git Commit Protocol consolidated to hooks + CORE_PROCESSES.md reference (December 2025)*

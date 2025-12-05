@@ -4,6 +4,8 @@
 **Loaded by**: session-resume skill
 **Purpose**: Session continuity and inter-project communication
 
+> **Note**: This format specification is duplicated in both session-closure and session-resume skills for self-contained documentation. Any changes must be synchronized manually between both copies. Run tests/test_sync.sh to verify files remain identical.
+
 ---
 
 ## Complete Format
@@ -120,7 +122,7 @@
 - Backward compatible: Can read v1.0.0 and v1.1.0
 
 ### v1.1.0
-- Added: Archive management, staleness detection
+- Added: Archive management
 - Format unchanged from v1.0.0
 
 ### v1.0.0

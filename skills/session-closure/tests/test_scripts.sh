@@ -1,6 +1,6 @@
 #!/bin/bash
 # test_scripts.sh - Test suite for session-closure scripts
-# Part of session-closure skill v1.1.0
+# Part of session-closure skill
 #
 # Usage: ./test_scripts.sh
 #
@@ -146,7 +146,7 @@ test_git_tracked() {
     OUTPUT=$("$SCRIPT_DIR/archive_resume.sh" 2>&1)
 
     # Verify: Git tracking message shown
-    if [[ "$OUTPUT" == *"Resume tracked in git"* ]]; then
+    if [[ "$OUTPUT" == *"tracked in git"* ]]; then
         pass "Git tracking detected, archive skipped"
     else
         fail "Expected git tracking message, got: $OUTPUT"
@@ -180,8 +180,8 @@ test_valid_resume() {
     # Setup: Copy valid resume
     cp "$FIXTURE_DIR/sample_resume.md" CLAUDE_RESUME.md
 
-    # Execute: validate script
-    if "$SCRIPT_DIR/validate_resume.sh" CLAUDE_RESUME.md >/dev/null 2>&1; then
+    # Execute: validate script (pass current directory as PROJECT_ROOT)
+    if "$SCRIPT_DIR/validate_resume.sh" . >/dev/null 2>&1; then
         pass "Valid resume passed validation"
     else
         fail "Valid resume should pass validation"
@@ -209,8 +209,8 @@ test_invalid_resume() {
 Did some work.
 EOF
 
-    # Execute: validate script (should fail)
-    if ! "$SCRIPT_DIR/validate_resume.sh" CLAUDE_RESUME.md >/dev/null 2>&1; then
+    # Execute: validate script (should fail - pass current directory as PROJECT_ROOT)
+    if ! "$SCRIPT_DIR/validate_resume.sh" . >/dev/null 2>&1; then
         pass "Invalid resume correctly failed validation"
     else
         fail "Invalid resume should fail validation"
@@ -227,14 +227,14 @@ test_missing_file() {
 
     setup_test_env
 
-    # Execute: validate script on non-existent file (capture exit code)
+    # Execute: validate script on directory with no resume (capture exit code)
     set +e  # Temporarily disable exit on error
-    "$SCRIPT_DIR/validate_resume.sh" nonexistent.md >/dev/null 2>&1
+    "$SCRIPT_DIR/validate_resume.sh" . >/dev/null 2>&1
     EXIT_CODE=$?
     set -e  # Re-enable exit on error
 
     if [ $EXIT_CODE -eq 2 ]; then
-        pass "Missing file detected with correct exit code"
+        pass "Missing resume detected with correct exit code"
     else
         fail "Expected exit code 2, got: $EXIT_CODE"
     fi
