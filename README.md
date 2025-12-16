@@ -1,24 +1,38 @@
-# Claude Code Session Skills
+# Claude Code Tools
 
-Session continuity skills for Claude Code - maintain context across coding sessions with intelligent resume creation and loading.
+A collection of Claude Code skills for enhanced development workflows.
 
 ## Overview
 
-This plugin provides two complementary skills that work together to preserve your work context across Claude Code sessions:
+This repository provides multiple skills for Claude Code:
 
+**Session Management** (`session-skills` plugin):
 - **session-closure**: Creates detailed session resumes when ending a session
 - **session-resume**: Loads and presents previous session context when starting a new session
 
+**Git Worktree Operations** (`git-worktree` plugin):
+- **git-worktree**: Interactive git worktree management - clone, convert, create, list, remove, troubleshoot
+
 ## Features
 
-✅ **Automatic Session Resumes** - Capture what you accomplished, what's pending, and what to focus on next
-✅ **Project Status Tracking** - Inter-project communication and coordination
-✅ **Sync Status** - Track authoritative sources (Google Docs, HackMD, GitHub)
-✅ **Intelligent Archiving** - Automatic resume archiving with git-aware logic
-✅ **Staleness Detection** - Warns when resuming from old sessions
-✅ **Full & Minimal Modes** - Adapts to available context budget
-✅ **Executable Scripts** - Consistent, tested, token-efficient operations
-✅ **Comprehensive Testing** - 20 automated tests ensure reliability
+### Session Skills
+- Automatic session resumes with project status tracking
+- Intelligent archiving with git-aware logic
+- Staleness detection and warnings
+- Full, minimal, and emergency modes
+
+### Git Worktree Skill
+- Clone repos directly into worktree form
+- Convert existing repos to worktree structure
+- Create/list/remove worktrees for branches
+- Troubleshoot common worktree issues
+- WORKTREES/GITHUB/{owner}/{repo}/ workspace pattern
+
+### Common Features
+- Executable scripts for consistency
+- Progressive disclosure architecture
+- Cross-platform support (macOS + Linux)
+- Comprehensive test suites
 
 ## Installation
 
@@ -28,8 +42,9 @@ This plugin provides two complementary skills that work together to preserve you
 # Add this marketplace
 /plugin marketplace add ChristopherA/claude_code_tools
 
-# Install the session-skills plugin
-/plugin install session-skills@session-skills
+# Install individual plugins
+/plugin install session-skills@claude-code-tools
+/plugin install git-worktree@claude-code-tools
 ```
 
 ### Option 2: Manual Installation
@@ -38,12 +53,37 @@ This plugin provides two complementary skills that work together to preserve you
 # Clone the repository
 git clone https://github.com/ChristopherA/claude_code_tools.git
 
-# Copy skills to your Claude Code skills directory
+# Copy session skills
 cp -r claude_code_tools/skills/session-closure ~/.claude/skills/
 cp -r claude_code_tools/skills/session-resume ~/.claude/skills/
+
+# Copy git-worktree skill
+cp -r claude_code_tools/skills/git-worktree ~/.claude/skills/
 ```
 
 ## Quick Start
+
+### Git Worktree Operations
+
+```
+User: clone worktree from https://github.com/owner/repo
+
+Claude: This will create:
+  ~/WORKTREES/GITHUB/owner/repo/
+  ├── repo.git/   (bare repository)
+  └── main/       (main branch worktree)
+
+Proceed? [Y/n]
+
+✅ Cloned into worktree form
+cd ~/WORKTREES/GITHUB/owner/repo/main
+```
+
+Other commands:
+- "convert to worktree" - Convert current repo
+- "create worktree for feature/auth" - Add branch worktree
+- "list worktrees" - Show all worktrees
+- "troubleshoot worktrees" - Fix common issues
 
 ### Ending a Session
 
@@ -83,6 +123,32 @@ Claude will:
 4. Ready you to continue where you left off
 
 ## Skills Included
+
+### git-worktree v1.0.0
+
+**Triggers**:
+- "clone worktree from {url}", "get worktree from {repo}"
+- "convert to worktree"
+- "create worktree for {branch}"
+- "list worktrees", "remove worktree {name}"
+- "troubleshoot worktrees", "validate worktree"
+
+**Key Features**:
+- Clone GitHub repos directly into worktree form
+- Convert existing local repos to worktree structure
+- Create/list/remove worktrees for branches
+- Troubleshoot common issues (core.bare, stale entries, broken links)
+- WORKTREES/GITHUB/{owner}/{repo}/ workspace pattern
+- Inception commit detection (Open Integrity pattern)
+
+**Scripts** (10 total):
+- `clone-as-worktree.sh` - Clone into worktree form
+- `convert-to-worktree.sh` - Convert existing repo
+- `create-worktree.sh` - Add worktree for branch
+- `list-worktrees.sh` - Show worktrees with status
+- `remove-worktree.sh` - Safely remove worktree
+- `troubleshoot.sh` - Diagnose and fix issues
+- Plus 4 utility scripts (detect-repo-type, extract-owner, detect-inception, validate-setup)
 
 ### session-closure v1.2.0
 
@@ -318,6 +384,10 @@ Both skills follow best practices:
 
 ### Skill Documentation
 
+**git-worktree**: See `skills/git-worktree/` for:
+- SKILL.md - Complete skill documentation
+- references/troubleshooting.md - Advanced troubleshooting guide
+
 **session-closure**: See `skills/session-closure/references/` for:
 - README.md - Installation and usage
 - CONTRIBUTING.md - Development guide
@@ -331,14 +401,23 @@ Both skills follow best practices:
 
 ## Versions
 
-**Current**: v1.4.0 (December 4, 2025)
+**Current**: v1.5.0 (December 15, 2025)
 
-**Key Features**:
-- **NEW**: Git hooks enforcement (`~/.claude/hooks/git-commit-compliance.py`)
-- **NEW**: Consolidated Git Commit Protocol (hooks + CORE_PROCESSES.md)
-- **NEW**: 34 automated tests (skills + hooks)
+**What's New in v1.5.0**:
+- **NEW**: git-worktree skill - Interactive git worktree management
+  - Clone repos into worktree form
+  - Convert existing repos
+  - Create/list/remove worktrees
+  - Troubleshoot issues
+  - 10 executable scripts
+- Repository renamed to "claude-code-tools" (multi-plugin collection)
+- Marketplace updated with separate plugins for session-skills and git-worktree
+
+**Previous (v1.4.0)**:
+- Git hooks enforcement (`~/.claude/hooks/git-commit-compliance.py`)
+- Consolidated Git Commit Protocol (hooks + CORE_PROCESSES.md)
+- 34 automated tests (skills + hooks)
 - Working directory fixes - scripts work from any directory
-- Git backup step - automatic session state backup
 - Progressive disclosure architecture (76% token reduction)
 - Cross-platform support (macOS + Linux)
 - BSD-2-Clause-Patent LICENSE
@@ -368,4 +447,7 @@ Built following [Anthropic's Agent Skills best practices](https://github.com/ant
 
 ---
 
-**Need help?** Say "How do I use session-closure?" or "How do I use session-resume?" in Claude Code.
+**Need help?** In Claude Code, try:
+- "clone worktree from https://github.com/owner/repo"
+- "convert to worktree"
+- "close context" or "resume"

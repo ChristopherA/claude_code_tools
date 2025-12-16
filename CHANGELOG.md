@@ -1,9 +1,50 @@
 # Changelog
 
-All notable changes to the session-skills plugin will be documented in this file.
+All notable changes to claude-code-tools will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
+## [1.5.0] - 2025-12-15
+
+### Added
+- **git-worktree skill v1.0.0**: Interactive git worktree management
+  - Clone repos directly into worktree form (`clone worktree from {url}`)
+  - Convert existing repos to worktree structure (`convert to worktree`)
+  - Create/list/remove worktrees for branches
+  - Troubleshoot common issues (core.bare, stale entries, broken links)
+  - WORKTREES/GITHUB/{owner}/{repo}/ workspace pattern
+  - Inception commit detection (Open Integrity pattern)
+  - 10 executable scripts:
+    - clone-as-worktree.sh, convert-to-worktree.sh, create-worktree.sh
+    - list-worktrees.sh, remove-worktree.sh, troubleshoot.sh
+    - detect-repo-type.sh, extract-owner.sh, detect-inception.sh, validate-setup.sh
+  - references/troubleshooting.md for advanced diagnostics
+
+### Changed
+- **Marketplace renamed**: `session-skills` → `claude-code-tools`
+  - Now a multi-plugin collection
+  - session-skills remains as separate plugin within collection
+- **marketplace.json updated**: Added git-worktree as new plugin
+- **README.md rewritten**: Now documents all skills in collection
+- **Version**: 1.4.0 → 1.5.0 (new skill addition)
+
+### Documentation
+- README.md updated with git-worktree quick start and features
+- Skills Included section expanded with git-worktree details
+- Installation instructions updated for both plugins
+
+### Testing
+- git-worktree skill tested with 8 evaluation scenarios
+- All scripts validated (10 scripts, ~2200 lines total)
+- Platform: macOS (Darwin 25.1.0)
+
+### Deployment
+- Deployed to: claude_code_tools v1.5.0
+- Installation: `/plugin install git-worktree@claude-code-tools`
+- Manual: `cp -r skills/git-worktree ~/.claude/skills/`
 
 ---
 

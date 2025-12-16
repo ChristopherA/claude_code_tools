@@ -1,12 +1,12 @@
 {
-  "name": "session-skills",
+  "name": "claude-code-tools",
   "owner": {
     "name": "Christopher Allen",
     "email": "ChristopherA@LifeWithAlacrity.com"
   },
   "metadata": {
-    "description": "Session continuity skills for Claude Code - maintain context across sessions",
-    "version": "1.4.0"
+    "description": "Claude Code skills collection - session management, git worktree operations, and more",
+    "version": "1.5.0"
   },
   "plugins": [
     {
@@ -17,6 +17,15 @@
       "skills": [
         "./skills/session-closure",
         "./skills/session-resume"
+      ]
+    },
+    {
+      "name": "git-worktree",
+      "description": "Interactive git worktree management. Clone repos into worktree form, convert existing repos, create/list/remove worktrees, and troubleshoot issues. Uses WORKTREES/GITHUB/{owner}/{repo}/ workspace structure.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/git-worktree"
       ]
     }
   ]
