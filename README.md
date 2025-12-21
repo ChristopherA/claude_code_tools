@@ -9,6 +9,7 @@ This repository provides multiple skills for Claude Code:
 **Session Management** (`session-skills` plugin):
 - **session-closure**: Creates detailed session resumes when ending a session
 - **session-resume**: Loads and presents previous session context when starting a new session
+- **session-cleanup**: Adaptive session audit before closure with depth calibration
 
 **Git Worktree Operations** (`git-worktree` plugin):
 - **git-worktree**: Interactive git worktree management - clone, convert, create, list, remove, troubleshoot
@@ -20,6 +21,8 @@ This repository provides multiple skills for Claude Code:
 - Intelligent archiving with git-aware logic
 - Staleness detection and warnings
 - Full, minimal, and emergency modes
+- Pre-closure cleanup with depth calibration (light/standard/thorough)
+- Project-specific cleanup checklists
 
 ### Git Worktree Skill
 - Clone repos directly into worktree form
@@ -56,6 +59,7 @@ git clone https://github.com/ChristopherA/claude_code_tools.git
 # Copy session skills
 cp -r claude_code_tools/skills/session-closure ~/.claude/skills/
 cp -r claude_code_tools/skills/session-resume ~/.claude/skills/
+cp -r claude_code_tools/skills/session-cleanup ~/.claude/skills/
 
 # Copy git-worktree skill
 cp -r claude_code_tools/skills/git-worktree ~/.claude/skills/
@@ -186,6 +190,25 @@ Claude will:
 **Scripts**:
 - `check_staleness.sh` - Calculate resume age
 - `list_archives.sh` - Discover archived sessions
+
+### session-cleanup v1.1.0
+
+**Triggers**:
+- "session cleanup", "session review", "audit session"
+- "pre-closure check", "cleanup"
+
+**Key Features**:
+- Adaptive depth calibration based on session complexity
+- Automated checks: permissions, uncommitted changes, complexity
+- Structured ultrathink with category hints
+- Project-specific local cleanup support
+- Seamless handoff to session-closure
+
+**Scripts**:
+- `check_permissions.sh` - One-time permission verification
+- `check_uncommitted_changes.sh` - Git state validation
+- `detect_complexity.sh` - Session depth calibration
+- `find_local_cleanup.sh` - Local cleanup file detection
 
 ## Usage Examples
 
@@ -399,19 +422,26 @@ Both skills follow best practices:
 - CONTRIBUTING.md - Development guide
 - RESUME_FORMAT_v1.2.md - Resume format specification
 
+**session-cleanup**: See `skills/session-cleanup/references/` for:
+- README.md - Installation and usage
+- CONTRIBUTING.md - Developer guide with script documentation
+- LOCAL_TEMPLATE.md - Template for project-specific cleanup
+
 ## Versions
 
-**Current**: v1.5.0 (December 15, 2025)
+**Current**: v1.6.0 (December 20, 2025)
 
-**What's New in v1.5.0**:
-- **NEW**: git-worktree skill - Interactive git worktree management
-  - Clone repos into worktree form
-  - Convert existing repos
-  - Create/list/remove worktrees
-  - Troubleshoot issues
-  - 10 executable scripts
-- Repository renamed to "claude-code-tools" (multi-plugin collection)
-- Marketplace updated with separate plugins for session-skills and git-worktree
+**What's New in v1.6.0**:
+- **NEW**: session-cleanup skill - Adaptive session audit before closure
+  - Depth calibration (light/standard/thorough)
+  - Automated pre-closure checks
+  - Structured ultrathink with category hints
+  - Project-specific local cleanup support
+  - 4 executable scripts, 8 automated tests
+
+**Previous (v1.5.0)**:
+- git-worktree skill - Interactive git worktree management
+- Repository renamed to "claude-code-tools"
 
 **Previous (v1.4.0)**:
 - Git hooks enforcement (`~/.claude/hooks/git-commit-compliance.py`)

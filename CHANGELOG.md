@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.6.0] - 2025-12-20
+
+### Added
+- **session-cleanup skill v1.1.0**: Adaptive session audit before closure
+  - Automated pre-closure checks: permissions, uncommitted changes, complexity detection
+  - Depth calibration: light (0-1 commits), standard (2-5 commits), thorough (6+ commits)
+  - Structured ultrathink with category hints for comprehensive session review
+  - Project-specific local cleanup support (`claude/processes/local-session-cleanup.md`)
+  - 4 executable scripts:
+    - check_permissions.sh - One-time permission verification
+    - check_uncommitted_changes.sh - Git state validation
+    - detect_complexity.sh - Session depth calibration
+    - find_local_cleanup.sh - Local cleanup file detection
+  - references/README.md - User guide with installation, usage, troubleshooting
+  - references/CONTRIBUTING.md - Developer guide with script documentation
+  - references/LOCAL_TEMPLATE.md - Template for project-specific cleanup checklists
+  - tests/test_session_cleanup.sh - 8 automated tests
+
+### Changed
+- **marketplace.json**: Added session-cleanup to session-skills plugin
+- **Version**: 1.5.0 → 1.6.0 (new skill addition)
+
+### Documentation
+- README.md updated with session-cleanup triggers and features
+- Skills Included section expanded with session-cleanup details
+
+### Testing
+- session-cleanup skill tested with 8 automated tests
+- All scripts validated for non-git and minimal project structures
+- Cross-project validation (Tableau project)
+- Platform: macOS (Darwin 25.2.0)
+
+### Deployment
+- Deployed to: claude_code_tools v1.6.0
+- Installation: `/plugin install session-skills@claude-code-tools`
+- Manual: `cp -r skills/session-cleanup ~/.claude/skills/`
+
+---
+
 ## [1.5.0] - 2025-12-15
 
 ### Added
@@ -494,4 +533,4 @@ Detailed release notes available:
 ---
 
 *Changelog maintained by [Christopher Allen](https://github.com/ChristopherA)*
-*Last updated: November 14, 2025*
+*Last updated: December 20, 2025*

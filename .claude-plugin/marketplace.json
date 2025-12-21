@@ -6,17 +6,18 @@
   },
   "metadata": {
     "description": "Claude Code skills collection - session management, git worktree operations, and more",
-    "version": "1.5.0"
+    "version": "1.6.0"
   },
   "plugins": [
     {
       "name": "session-skills",
-      "description": "Provides session-closure and session-resume skills for maintaining context across Claude Code sessions. Automatically creates session resumes with project status, sync tracking, and intelligent archiving.",
+      "description": "Provides session-closure, session-resume, and session-cleanup skills for maintaining context across Claude Code sessions. Automatically creates session resumes with project status, sync tracking, and intelligent archiving.",
       "source": "./",
       "strict": false,
       "skills": [
         "./skills/session-closure",
-        "./skills/session-resume"
+        "./skills/session-resume",
+        "./skills/session-cleanup"
       ]
     },
     {
