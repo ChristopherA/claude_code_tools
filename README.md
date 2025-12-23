@@ -1,10 +1,10 @@
 # Claude Code Tools
 
-A collection of Claude Code skills for enhanced development workflows.
+A collection of Claude Code skills and hooks for enhanced development workflows.
 
 ## Overview
 
-This repository provides multiple skills for Claude Code:
+This repository provides multiple skills and hooks for Claude Code:
 
 **Session Management** (`session-skills` plugin):
 - **session-closure**: Creates detailed session resumes when ending a session
@@ -13,6 +13,10 @@ This repository provides multiple skills for Claude Code:
 
 **Git Worktree Operations** (`git-worktree` plugin):
 - **git-worktree**: Interactive git worktree management - clone, convert, create, list, remove, troubleshoot
+
+**Session-Start Hooks** (`hooks/`):
+- **session-start.sh**: Persists PROJECT_ROOT for consistent path handling across session
+- **session-start-git-context.sh**: Git awareness at session start (branch, commits, status)
 
 ## Features
 
@@ -63,7 +67,13 @@ cp -r claude_code_tools/skills/session-cleanup ~/.claude/skills/
 
 # Copy git-worktree skill
 cp -r claude_code_tools/skills/git-worktree ~/.claude/skills/
+
+# Copy session-start hooks (optional but recommended)
+cp claude_code_tools/hooks/*.sh ~/.claude/hooks/
+chmod +x ~/.claude/hooks/session-start*.sh
 ```
+
+**Note**: Skills go to `~/.claude/skills/`, hooks go to `~/.claude/hooks/`.
 
 ## Quick Start
 

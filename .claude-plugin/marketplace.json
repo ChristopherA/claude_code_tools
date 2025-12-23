@@ -5,8 +5,8 @@
     "email": "ChristopherA@LifeWithAlacrity.com"
   },
   "metadata": {
-    "description": "Claude Code skills collection - session management, git worktree operations, and more",
-    "version": "1.6.0"
+    "description": "Claude Code skills and hooks collection - session management, git worktree operations, and more",
+    "version": "1.7.0"
   },
   "plugins": [
     {

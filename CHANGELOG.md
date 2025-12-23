@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.0] - 2025-12-22
+
+### Added
+- **Session-start hooks**: Hook infrastructure for session initialization
+  - `hooks/session-start.sh` - PROJECT_ROOT persistence across session
+  - `hooks/session-start-git-context.sh` - Git awareness at session start
+    - Branch, uncommitted changes, recent commits, stashes, remote status
+    - Foundation hook detection (warns if git enforcement hooks not installed)
+
+### Changed
+- **marketplace.json**: Updated description to include hooks
+- **Version**: 1.6.0 → 1.7.0 (hooks addition)
+
+### Documentation
+- Hooks deploy to `~/.claude/hooks/` (different from skills which go to `~/.claude/skills/`)
+- Ownership model: session-start hooks owned by session-skills, git-*.py owned by foundation
+
+### Installation
+- Skills: `cp -r skills/* ~/.claude/skills/`
+- Hooks: `cp hooks/*.sh ~/.claude/hooks/ && chmod +x ~/.claude/hooks/session-start*.sh`
+
+---
+
 ## [1.6.0] - 2025-12-20
 
 ### Added
