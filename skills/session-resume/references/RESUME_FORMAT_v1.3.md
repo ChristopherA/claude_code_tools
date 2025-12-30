@@ -1,4 +1,4 @@
-# CLAUDE_RESUME.md Format v1.2.0
+# CLAUDE_RESUME.md Format v1.3.0
 
 **Created by**: session-closure skill
 **Loaded by**: session-resume skill
@@ -61,6 +61,15 @@
 
 ---
 
+## Pending Outbound Handoffs
+*Optional - include when handoffs sent to other projects awaiting response*
+
+| Sent | Destination | Summary | Response requested |
+|------|-------------|---------|-------------------|
+| YYYY-MM-DD | [Project name] | [Brief description] | YES/NO |
+
+---
+
 ## Project Status
 *Required for all projects - enables inter-project communication*
 
@@ -85,7 +94,7 @@
 
 ---
 
-*Resume created by session-closure v1.2.0: [Timestamp]*
+*Resume created by session-closure v1.3.0: [Timestamp]*
 *Next session: Say "resume" to load this context*
 ```
 
@@ -106,6 +115,7 @@
 - **Insights & Learnings**: When discoveries occurred
 - **Session Summary**: 2-3 sentence overview
 - **Sync Status**: ONLY if external authoritative sources exist
+- **Pending Outbound Handoffs**: When handoffs sent to other projects await response
 
 ### Omit Sync Status If
 - No Google Docs/HackMD/GitHub as authoritative sources
@@ -116,7 +126,11 @@
 
 ## Version Compatibility
 
-### v1.2.0 (Current)
+### v1.3.0 (Current)
+- Added: "Pending Outbound Handoffs" section (optional)
+- Backward compatible: Can read v1.0.0 through v1.2.0
+
+### v1.2.0
 - Added: "Project Status" section (required)
 - Added: "Sync Status" section (conditional)
 - Backward compatible: Can read v1.0.0 and v1.1.0
@@ -143,4 +157,4 @@ Use validation script:
 
 ---
 
-*CLAUDE_RESUME.md Format v1.2.0 - Reference specification*
+*CLAUDE_RESUME.md Format v1.3.0 - Added Pending Outbound Handoffs (December 2025)*

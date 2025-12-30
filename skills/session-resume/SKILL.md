@@ -1,13 +1,14 @@
 ---
 name: session-resume
-version: 1.4.0
+version: 1.5.0
 description: >
   Load and process previous session context from CLAUDE_RESUME.md.
   Checks for uncommitted changes before loading (blocking). Uses
   executable scripts for archive listing and uncommitted changes
-  detection. Recognizes Project Status (inter-project communication)
-  and Sync Status (authoritative source tracking) sections. Provides
-  summary and highlights next session focus.
+  detection. Recognizes Project Status (inter-project communication),
+  Sync Status (authoritative source tracking), and Pending Outbound
+  Handoffs (cross-project tracking) sections. Provides summary and
+  highlights next session focus.
 
   WHEN: User explicitly requests "resume", "load resume", "continue
   from last session", "what was I working on", "show previous session",
@@ -261,6 +262,7 @@ When uncommitted changes are detected, you MUST commit them before proceeding. F
    - Pending Tasks (with count)
    - **Project Status** (if present - v1.2.0+)
    - **Sync Status** (if present - v1.2.0+)
+   - **Pending Outbound Handoffs** (if present - v1.3.0+)
    - Next Session Focus
    - Key Decisions (if present)
    - Insights & Learnings (if present)
@@ -269,6 +271,10 @@ When uncommitted changes are detected, you MUST commit them before proceeding. F
    - If sync dates are >7 days old: Warn user
    - If "current": Note that sources are up-to-date
    - If missing: No sync concerns
+
+4. **Check Pending Outbound Handoffs** (if present):
+   - Note any handoffs awaiting response
+   - Flag handoffs sent >7 days ago as possibly stale
 
 ### Step 3: Present Resume Summary
 
@@ -286,6 +292,11 @@ Present the resume to the user:
 [If Sync Status present and has stale dates:]
 ⚠️  Authoritative sources may need syncing:
 - [Source]: Last synced [date] ([N] days ago)
+
+[If Pending Outbound Handoffs present:]
+📤 **Pending outbound handoffs**:
+- [Destination]: [Summary] (sent [date], [N] days ago)
+[If any >7 days: ⚠️ May need follow-up]
 
 **Next focus**: [From "Next Session Focus" section]
 
@@ -341,9 +352,9 @@ See **CORE_PROCESSES.md § Git Commit Protocol** for complete requirements.
 ## Additional Documentation
 
 - **references/README.md** - Installation, usage examples, and workflow integration
-- **references/RESUME_FORMAT_v1.2.md** - Resume format specification (required reading)
+- **references/RESUME_FORMAT_v1.3.md** - Resume format specification (required reading)
 - **references/CONTRIBUTING.md** - Development, testing, and contribution guide
 
 ---
 
-*Session-resume skill v1.4.0 - Git Commit Protocol consolidated to hooks + CORE_PROCESSES.md reference (December 2025)*
+*Session-resume skill v1.5.0 - Added Pending Outbound Handoffs recognition (December 2025)*

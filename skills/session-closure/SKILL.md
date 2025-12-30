@@ -1,13 +1,14 @@
 ---
 name: session-closure
-version: 1.4.0
+version: 1.5.0
 description: >
   Execute session closure protocol with resume creation. Automatically
   archives previous resumes unless tracked in git. Uses executable
   scripts for consistent archiving, validation, and commits. Creates
-  resumes with Project Status (inter-project communication) and Sync
-  Status (authoritative source tracking). Checks for ALL uncommitted
-  changes before closure and commits them before creating new resume.
+  resumes with Project Status (inter-project communication), Sync
+  Status (authoritative source tracking), and Pending Outbound Handoffs
+  (cross-project tracking). Checks for ALL uncommitted changes before
+  closure and commits them before creating new resume.
 
   WHEN: User says "close context", "end session", "prepare to stop",
   "prepare to close session", "save state", "create resume", OR when
@@ -259,7 +260,7 @@ If context is limited, focus on essential state. Optional sections (Key Decision
 
 **Location**: Current project root (same directory as CLAUDE.md)
 
-**Format**: See `references/RESUME_FORMAT_v1.2.md` for complete specification.
+**Format**: See `references/RESUME_FORMAT_v1.3.md` for complete specification.
 
 **BEFORE creating file, verify you will include ALL required sections:**
 
@@ -276,6 +277,7 @@ If context is limited, focus on essential state. Optional sections (Key Decision
 - [ ] `## Key Decisions Made`
 - [ ] `## Insights & Learnings`
 - [ ] `## Sync Status` (only if external authoritative sources exist)
+- [ ] `## Pending Outbound Handoffs` (only if handoffs sent awaiting response)
 
 **After verifying checklist, create file with these sections:**
 
@@ -286,6 +288,7 @@ If context is limited, focus on essential state. Optional sections (Key Decision
 - Insights & Learnings (optional)
 - Session Summary
 - Sync Status (if external authoritative sources exist)
+- Pending Outbound Handoffs (if handoffs sent awaiting response)
 - Project Status (required)
 - Next Session Focus
 - Footer (version, timestamp, instructions)
@@ -353,9 +356,9 @@ Summary: [One sentence about session outcome]
 ## Additional Documentation
 
 - **references/README.md** - Installation, usage, and troubleshooting guide
-- **references/RESUME_FORMAT_v1.2.md** - Complete resume format specification (required reading)
+- **references/RESUME_FORMAT_v1.3.md** - Complete resume format specification (required reading)
 - **references/CONTRIBUTING.md** - Development, testing, and contribution guide
 
 ---
 
-*Session-closure skill v1.4.0 - Git Commit Protocol consolidated to hooks + CORE_PROCESSES.md reference (December 2025)*
+*Session-closure skill v1.5.0 - Added Pending Outbound Handoffs to Resume format (December 2025)*

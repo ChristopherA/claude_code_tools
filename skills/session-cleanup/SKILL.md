@@ -1,11 +1,12 @@
 ---
 name: session-cleanup
-version: 1.1.0
+version: 1.2.0
 description: >
   Adaptive session audit before closure. Uses structured ultrathink
   with category hints to review session work proportionate to complexity.
   Detects session depth (light/standard/thorough) and adjusts analysis.
-  Loads project-specific checks if present. Prepares for session-closure.
+  Checks for stale planning docs (>30 days). Loads project-specific
+  checks if present. Prepares for session-closure.
 
   INVOCATION: Claude uses the Skill tool to invoke this skill when user
   says "session cleanup", "session review", "audit session", "pre-closure
@@ -26,6 +27,7 @@ description: >
    - [Step 0: Check Permissions](#step-0-check-permissions-one-time-setup)
    - [Step 0.5: Check Uncommitted Changes](#step-05-check-uncommitted-changes)
    - [Step 1: Detect Session Complexity](#step-1-detect-session-complexity)
+   - [Step 1.5: Check Stale Planning Docs](#step-15-check-stale-planning-docs)
    - [Step 2: Structured Ultrathink](#step-2-structured-ultrathink)
    - [Step 3: Validation Pass](#step-3-validation-pass)
    - [Step 4: Project-Specific Checks](#step-4-project-specific-checks)
@@ -83,6 +85,7 @@ REQUIRED_PATTERNS='[
   "Bash(\"${SKILL_BASE:-$HOME/.claude/skills/session-cleanup}/scripts/check_uncommitted_changes.sh\" \"${PROJECT_ROOT:-$PWD}\")",
   "Bash(\"${SKILL_BASE:-$HOME/.claude/skills/session-cleanup}/scripts/detect_complexity.sh\" \"${PROJECT_ROOT:-$PWD}\")",
   "Bash(\"${SKILL_BASE:-$HOME/.claude/skills/session-cleanup}/scripts/find_local_cleanup.sh\" \"${PROJECT_ROOT:-$PWD}\")",
+  "Bash(\"${SKILL_BASE:-$HOME/.claude/skills/session-cleanup}/scripts/check_stale_planning.sh\" \"${PROJECT_ROOT:-$PWD}\")",
   "Read(~/.claude/skills/session-cleanup/**)"
 ]'
 
@@ -146,6 +149,37 @@ Determine appropriate depth for session review:
 - **thorough**: 6+ commits, 15+ files → deep review with extra validation
 
 Use the detected depth to calibrate Step 2 analysis.
+
+---
+
+### Step 1.5: Check Stale Planning Docs
+
+Detect planning documents that may be abandoned or need completion:
+
+```bash
+"${SKILL_BASE:-$HOME/.claude/skills/session-cleanup}/scripts/check_stale_planning.sh" "${PROJECT_ROOT:-$PWD}"
+```
+
+**Script behavior**:
+- **No planning directory**: Exits silently (code 0) → proceed to Step 2
+- **No stale docs**: Reports active docs (informational) → proceed to Step 2
+- **Stale docs found** (>30 days): Warns with options (code 1) → add to [ASK user] list
+
+**When stale docs found**:
+
+The script identifies documents that haven't been updated in >30 days and suggests:
+1. **COMPLETE**: Integrate findings into permanent docs, then delete
+2. **UPDATE**: If work is ongoing, touch file to reset timer
+3. **ABANDON**: If obsolete, delete with commit noting abandonment
+
+Add stale docs to the [ASK user] category in Step 2 - user decides disposition.
+
+**Why this matters**: Planning docs are ephemeral by design. Stale docs indicate either:
+- Abandoned work (should be deleted)
+- Forgotten integration (should be completed)
+- Ongoing work that needs attention (should be updated)
+
+**See**: CORE_PROCESSES.md § Transient Artifacts Overview for staleness thresholds.
 
 ---
 
@@ -265,4 +299,4 @@ When ready to close session, say "close context" or invoke session-closure.
 
 ---
 
-*Session-cleanup skill v1.1.0 - Inline permission setup, clearer invocation docs (December 2025)*
+*Session-cleanup skill v1.2.0 - Added stale planning doc detection (December 2025)*
