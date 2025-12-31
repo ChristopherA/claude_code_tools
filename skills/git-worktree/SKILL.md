@@ -1,6 +1,6 @@
 ---
 name: git-worktree
-version: 1.0.0
+version: 1.0.1
 description: >
   Interactive skill for git worktree operations. Safely converts standard repos
   to worktree form, creates/lists/removes worktrees, and troubleshoots issues.

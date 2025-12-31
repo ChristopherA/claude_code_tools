@@ -189,10 +189,15 @@ BROKEN_LINKS=()
 MISSING_DIRS=()
 
 while IFS= read -r line; do
-    # Parse line: /path HEAD [branch]
+    # Parse line: /path HEAD [branch] or /path (bare)
     WORKTREE_DIR=$(echo "$line" | awk '{print $1}')
 
-    # Skip bare repo itself
+    # Skip bare repo entries (marked with "(bare)" in worktree list)
+    if [[ "$line" == *"(bare)"* ]]; then
+        continue
+    fi
+
+    # Also skip if path matches bare repo (belt and suspenders)
     if [ "$WORKTREE_DIR" = "$BARE_REPO" ]; then
         continue
     fi

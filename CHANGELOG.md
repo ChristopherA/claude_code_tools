@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.1] - 2025-12-31
+
+### Fixed
+- **git-worktree skill v1.0.1**: False positive in troubleshoot.sh Step 5
+  - Bare repositories incorrectly flagged as "missing .git file"
+  - Root cause: Bare repos ARE the git directory, they don't have .git files
+  - Fix: Skip entries marked "(bare)" in worktree list during integrity check
+
+### Changed
+- **git-worktree/scripts/troubleshoot.sh**: Added bare repo detection
+- **git-worktree/SKILL.md**: Version 1.0.0 → 1.0.1
+
+### Testing
+- Validated with XID-Quickstart worktree setup (6 worktrees)
+- Confirmed: "No issues found" for healthy bare repo configurations
+
+---
+
 ## [1.7.0] - 2025-12-22
 
 ### Added
@@ -556,4 +574,4 @@ Detailed release notes available:
 ---
 
 *Changelog maintained by [Christopher Allen](https://github.com/ChristopherA)*
-*Last updated: December 20, 2025*
+*Last updated: December 31, 2025*
