@@ -199,6 +199,7 @@ Consider these categories:
 (d) Cross-references - any stale paths or broken links?
 (e) Technical debt - any workarounds, TODOs, or deferred issues?
 (f) Test coverage - if skills modified, were tests written for changes?
+(g) Issue resolution - any GitHub issues resolved? Close with details.
 
 Categorize findings as:
 - [EXECUTE now] - do before session closes

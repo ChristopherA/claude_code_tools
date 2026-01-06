@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - README.md with installation and configuration guide
 
 ### Changed
-- **session-resume skill v0.5.1**: Dual location support + test coverage
+- **session-resume skill v0.5.1**: Dual location support + test coverage (closes #1)
   - Support for `.claude/CLAUDE_RESUME.md` location (preferred over root)
   - Support for `.claude/archives/` archive location
   - Added Step 0.1 pre-check hook mechanism
