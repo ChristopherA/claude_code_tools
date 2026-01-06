@@ -1,6 +1,6 @@
 ---
 name: session-cleanup
-version: 1.2.0
+version: 0.5.1
 description: >
   Adaptive session audit before closure. Uses structured ultrathink
   with category hints to review session work proportionate to complexity.
@@ -198,6 +198,7 @@ Consider these categories:
 (c) File proliferation - any new files that should be integrated?
 (d) Cross-references - any stale paths or broken links?
 (e) Technical debt - any workarounds, TODOs, or deferred issues?
+(f) Test coverage - if skills modified, were tests written for changes?
 
 Categorize findings as:
 - [EXECUTE now] - do before session closes
@@ -254,7 +255,10 @@ Check for project-specific cleanup checklist:
 "${SKILL_BASE:-$HOME/.claude/skills/session-cleanup}/scripts/find_local_cleanup.sh" "${PROJECT_ROOT:-$PWD}"
 ```
 
-**If local file found** (`claude/processes/local-session-cleanup.md`):
+**If local file found** (checked in order):
+- `.claude/processes/local-session-cleanup.md` (preferred)
+- `claude/processes/local-session-cleanup.md` (legacy)
+
 1. Read the file
 2. Execute project-specific checks
 3. Add findings to appropriate category ([EXECUTE/DEFER/ASK])
@@ -299,4 +303,4 @@ When ready to close session, say "close context" or invoke session-closure.
 
 ---
 
-*Session-cleanup skill v1.2.0 - Added stale planning doc detection (December 2025)*
+*Session-cleanup skill v0.5.1 - Version sync with session-closure/resume (January 2026)*

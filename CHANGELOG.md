@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.2] - 2026-01-06
+
+### Added
+- **context-monitor tool v0.1.0**: Always-visible statusline showing context usage
+  - Model display: `[Opus 4.5]`
+  - Color thresholds: green >40%, yellow 21-40%, red ≤20% with warning
+  - Configurable overhead via `CLAUDE_CONTEXT_OVERHEAD` (default 42000)
+  - Optional cost display via `CLAUDE_SHOW_COST` environment variable
+  - scripts/status-line.sh with session-specific caching
+  - README.md with installation and configuration guide
+
+### Changed
+- **session-resume skill v0.5.1**: Dual location support + test coverage
+  - Support for `.claude/CLAUDE_RESUME.md` location (preferred over root)
+  - Support for `.claude/archives/` archive location
+  - Added Step 0.1 pre-check hook mechanism
+  - list_archives.sh now searches both archive locations
+  - 4 new tests (Tests 9-12) for dual location support
+
+- **session-closure skill v0.5.1**: Dual location support + test coverage
+  - Support for `.claude/CLAUDE_RESUME.md` location (preferred over root)
+  - archive_resume.sh archives to matching location (.claude/ or root)
+  - Added Step 0.1 pre-check hook mechanism
+  - 4 new tests (Tests 7-10) for dual location support
+
+- **session-cleanup skill v0.5.1**: Dual location support + test coverage
+  - Support for `.claude/processes/local-session-cleanup.md` location
+  - Added test coverage category (f) to ultrathink
+  - 3 new tests (Tests 9-11) for dual location support
+
+- **marketplace.json**: Added context-monitor plugin, version 1.7.1 → 1.7.2
+
+### Testing
+- session-resume: 12 tests (8 original + 4 new)
+- session-closure: 10 tests (6 original + 4 new)
+- session-cleanup: 11 tests (8 original + 3 new)
+- Total: 33 automated tests, all passing
+
+### Documentation
+- README.md updated with context-monitor section and installation instructions
+
+---
+
 ## [1.7.1] - 2025-12-31
 
 ### Fixed

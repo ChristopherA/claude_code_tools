@@ -276,6 +276,149 @@ test_list_empty_directory() {
     cleanup_test_env
 }
 
+# ============================================
+# v0.5.1 Tests: Dual Location Support
+# ============================================
+
+# Test 9: check_staleness - .claude/ location
+test_staleness_claude_dir() {
+    echo ""
+    echo "Test 9: Check staleness (.claude/ location)"
+    TESTS_RUN=$((TESTS_RUN + 1))
+
+    setup_test_env
+
+    # Setup: Create resume in .claude/ directory
+    mkdir -p .claude
+    TODAY_DATE=$(date "+%B %d, %Y" | sed 's/  / /g')
+    cat > .claude/CLAUDE_RESUME.md <<EOF
+# Claude Resume - Test Project
+
+**Last Session**: $TODAY_DATE
+
+## Last Activity Completed
+Testing .claude/ location.
+
+## Pending Tasks
+- [ ] Test
+
+## Next Session Focus
+Continue.
+
+*Resume created by session-closure v0.5.1*
+EOF
+
+    # Execute: check staleness
+    OUTPUT=$("$SCRIPT_DIR/check_staleness.sh" . 2>&1)
+
+    # Verify: Reports fresh (found the file)
+    if [[ "$OUTPUT" == "fresh" ]]; then
+        pass ".claude/ location detected correctly"
+    else
+        fail "Expected 'fresh' from .claude/ location, got: $OUTPUT"
+    fi
+
+    cleanup_test_env
+}
+
+# Test 10: check_staleness - .claude/ takes precedence over root
+test_staleness_precedence() {
+    echo ""
+    echo "Test 10: Check staleness (.claude/ precedence)"
+    TESTS_RUN=$((TESTS_RUN + 1))
+
+    setup_test_env
+
+    # Setup: Create resume in BOTH locations
+    # Root: stale date
+    cp "$FIXTURE_DIR/stale_resume.md" CLAUDE_RESUME.md
+
+    # .claude/: fresh date (should take precedence)
+    mkdir -p .claude
+    TODAY_DATE=$(date "+%B %d, %Y" | sed 's/  / /g')
+    cat > .claude/CLAUDE_RESUME.md <<EOF
+# Claude Resume - Test Project
+
+**Last Session**: $TODAY_DATE
+
+## Last Activity Completed
+Fresh resume in .claude/.
+
+## Pending Tasks
+- [ ] Test
+
+## Next Session Focus
+Continue.
+
+*Resume created by session-closure v0.5.1*
+EOF
+
+    # Execute: check staleness
+    OUTPUT=$("$SCRIPT_DIR/check_staleness.sh" . 2>&1)
+
+    # Verify: Reports fresh (from .claude/, not stale from root)
+    if [[ "$OUTPUT" == "fresh" ]]; then
+        pass ".claude/ location takes precedence"
+    else
+        fail "Expected 'fresh' (.claude/ precedence), got: $OUTPUT"
+    fi
+
+    cleanup_test_env
+}
+
+# Test 11: list_archives - .claude/archives/ location
+test_list_archives_claude_dir() {
+    echo ""
+    echo "Test 11: List archives (.claude/archives/ location)"
+    TESTS_RUN=$((TESTS_RUN + 1))
+
+    setup_test_env
+
+    # Setup: Create archive in .claude/archives/
+    mkdir -p .claude/archives/CLAUDE_RESUME
+    echo "Archive in .claude/" > .claude/archives/CLAUDE_RESUME/2025-11-15-1400.md
+
+    # Execute: list archives
+    OUTPUT=$("$SCRIPT_DIR/list_archives.sh" 2>&1)
+
+    # Verify: Finds archive in .claude/ location
+    if [[ "$OUTPUT" == *"2025-11-15-1400"* ]]; then
+        pass ".claude/archives/ location detected"
+    else
+        fail "Expected archive from .claude/archives/, got: $OUTPUT"
+    fi
+
+    cleanup_test_env
+}
+
+# Test 12: list_archives - Both locations (should find from both)
+test_list_archives_both_locations() {
+    echo ""
+    echo "Test 12: List archives (both locations)"
+    TESTS_RUN=$((TESTS_RUN + 1))
+
+    setup_test_env
+
+    # Setup: Create archives in BOTH locations
+    mkdir -p archives/CLAUDE_RESUME
+    echo "Archive in root" > archives/CLAUDE_RESUME/2025-10-01-1000.md
+
+    mkdir -p .claude/archives/CLAUDE_RESUME
+    echo "Archive in .claude/" > .claude/archives/CLAUDE_RESUME/2025-11-01-1000.md
+
+    # Execute: list archives
+    OUTPUT=$("$SCRIPT_DIR/list_archives.sh" 2>&1)
+
+    # Verify: Finds archives from both locations
+    if [[ "$OUTPUT" == *"2025-10-01"* ]] && [[ "$OUTPUT" == *"2025-11-01"* ]]; then
+        pass "Both archive locations detected"
+    else
+        fail "Expected archives from both locations, got: $OUTPUT"
+    fi
+
+    cleanup_test_env
+}
+
 # Run all tests
 echo "========================================"
 echo "session-resume Script Test Suite"
@@ -289,6 +432,11 @@ test_staleness_stale
 test_staleness_missing
 test_list_detailed_format
 test_list_empty_directory
+# v0.5.1 tests
+test_staleness_claude_dir
+test_staleness_precedence
+test_list_archives_claude_dir
+test_list_archives_both_locations
 
 # Summary
 echo ""

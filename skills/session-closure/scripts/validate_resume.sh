@@ -17,12 +17,13 @@ if [ ! -f "CLAUDE.md" ]; then
     echo "   Working directory: $(pwd)" >&2
 fi
 
-# Resume file is always CLAUDE_RESUME.md in project root
-RESUME="CLAUDE_RESUME.md"
-
-# Check if file exists
-if [ ! -f "$RESUME" ]; then
-    echo "❌ Resume not found: $RESUME"
+# Find resume file (prefer .claude/ location)
+if [ -f ".claude/CLAUDE_RESUME.md" ]; then
+    RESUME=".claude/CLAUDE_RESUME.md"
+elif [ -f "CLAUDE_RESUME.md" ]; then
+    RESUME="CLAUDE_RESUME.md"
+else
+    echo "❌ Resume not found in .claude/ or project root"
     exit 2
 fi
 

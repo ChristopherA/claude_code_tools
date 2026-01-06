@@ -18,6 +18,9 @@ This repository provides multiple skills and hooks for Claude Code:
 - **session-start.sh**: Persists PROJECT_ROOT for consistent path handling across session
 - **session-start-git-context.sh**: Git awareness at session start (branch, commits, status)
 
+**Context Monitor** (`context-monitor` tool):
+- **status-line.sh**: Always-visible statusline showing context usage with color thresholds
+
 ## Features
 
 ### Session Skills
@@ -34,6 +37,12 @@ This repository provides multiple skills and hooks for Claude Code:
 - Create/list/remove worktrees for branches
 - Troubleshoot common worktree issues
 - WORKTREES/GITHUB/{owner}/{repo}/ workspace pattern
+
+### Context Monitor
+- Always-visible context percentage (Claude's built-in only shows at ~12%)
+- Color thresholds: green >40%, yellow 21-40%, red ≤20% with warning
+- Model name display: `[Opus 4.5] XX%`
+- Configurable overhead and optional cost display
 
 ### Common Features
 - Executable scripts for consistency
@@ -71,9 +80,16 @@ cp -r claude_code_tools/skills/git-worktree ~/.claude/skills/
 # Copy session-start hooks (optional but recommended)
 cp claude_code_tools/hooks/*.sh ~/.claude/hooks/
 chmod +x ~/.claude/hooks/session-start*.sh
+
+# Copy context-monitor (statusline script)
+mkdir -p ~/.claude/scripts
+cp claude_code_tools/tools/context-monitor/scripts/status-line.sh ~/.claude/scripts/
+chmod +x ~/.claude/scripts/status-line.sh
+# Then add to ~/.claude/settings.json:
+#   "statusLine": { "command": "~/.claude/scripts/status-line.sh" }
 ```
 
-**Note**: Skills go to `~/.claude/skills/`, hooks go to `~/.claude/hooks/`.
+**Note**: Skills go to `~/.claude/skills/`, hooks go to `~/.claude/hooks/`, scripts go to `~/.claude/scripts/`.
 
 ## Quick Start
 
@@ -439,17 +455,20 @@ Both skills follow best practices:
 
 ## Versions
 
-**Current**: v1.6.0 (December 20, 2025)
+**Current**: v1.7.2 (January 6, 2026)
 
-**What's New in v1.6.0**:
-- **NEW**: session-cleanup skill - Adaptive session audit before closure
-  - Depth calibration (light/standard/thorough)
-  - Automated pre-closure checks
-  - Structured ultrathink with category hints
-  - Project-specific local cleanup support
-  - 4 executable scripts, 8 automated tests
+**What's New in v1.7.2**:
+- **NEW**: context-monitor tool v0.1.0 - Always-visible statusline showing context usage
+  - Model display, color thresholds, configurable overhead
+- **session-skills v0.5.1**: Dual location support
+  - Support for `.claude/CLAUDE_RESUME.md` and `.claude/archives/`
+  - Support for `.claude/processes/local-session-cleanup.md`
+  - 11 new automated tests (33 total)
 
-**Previous (v1.5.0)**:
+**Previous (v1.7.1)**:
+- git-worktree: Fixed false positive in troubleshoot.sh for bare repos
+
+**Previous (v1.6.0)**:
 - git-worktree skill - Interactive git worktree management
 - Repository renamed to "claude-code-tools"
 

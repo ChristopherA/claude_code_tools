@@ -1,6 +1,6 @@
 ---
 name: session-closure
-version: 1.5.0
+version: 0.5.1
 description: >
   Execute session closure protocol with resume creation. Automatically
   archives previous resumes unless tracked in git. Uses executable
@@ -26,6 +26,7 @@ description: >
 
 1. [Closure Steps](#closure-steps)
    - [Step 0: Check Permissions](#step-0-check-permissions-one-time-setup)
+   - [Step 0.1: Project Pre-Check Hook](#step-01-project-pre-check-hook-optional)
    - [Step 0.5: Handle ALL Uncommitted Changes](#step-05-handle-all-uncommitted-changes)
    - [Step 1: Archive Existing Resume](#step-1-archive-existing-resume)
    - [Step 2: Assess Session State](#step-2-assess-session-state)
@@ -173,6 +174,71 @@ fi
 
 ---
 
+### Step 0.1: Project Pre-Check Hook (OPTIONAL)
+
+**Purpose**: Allow projects to run custom preparation before the uncommitted changes check.
+
+**Why this matters**:
+- Projects may have files that should be stashed, not committed (e.g., Apple Pages autosave)
+- Project-specific protocols exist in LOCAL_CONTEXT.md but skills don't read them
+- This hook enables mechanical enforcement of project-specific behavior
+- Backward compatible: skipped if no hook exists
+
+**Implementation**:
+
+Check for and run project hook if it exists:
+
+```bash
+HOOK_PATH="${PROJECT_ROOT:-$PWD}/.claude/hooks/session-pre-check.sh"
+if [ -x "$HOOK_PATH" ]; then
+  "$HOOK_PATH" "${PROJECT_ROOT:-$PWD}"
+fi
+```
+
+**Hook location**: `.claude/hooks/session-pre-check.sh` (project-level)
+
+**Hook contract**:
+- Receives project root as first argument
+- Exit code 0 = proceed to Step 0.5
+- Exit code non-zero = abort closure with hook's stderr/stdout as message
+- Hook is responsible for its own user communication
+
+**Common use cases**:
+- Stash files that shouldn't be committed (`.pages`, `.numbers`, temp files)
+- Run project-specific preparation scripts
+- Check project-specific preconditions
+
+**Example hook** (stash Apple Pages files):
+
+```bash
+#!/bin/bash
+# .claude/hooks/session-pre-check.sh
+# Stash Apple Pages files before session skills run
+
+PROJECT_ROOT="${1:-$PWD}"
+cd "$PROJECT_ROOT" || exit 1
+
+# Find modified .pages files
+PAGES_FILES=$(git status --porcelain | grep '\.pages$' | awk '{print $2}')
+
+if [ -n "$PAGES_FILES" ]; then
+  echo "📦 Stashing Apple Pages files (autosave noise)..."
+  git stash push -m "session-pre-check: .pages files" -- $PAGES_FILES
+  echo "✓ Stashed. Will auto-pop after session skill completes."
+fi
+
+exit 0
+```
+
+**If hook doesn't exist**: Skip silently, proceed to Step 0.5
+
+**Error handling**:
+- Hook not executable: Display warning, proceed to Step 0.5
+- Hook fails (non-zero): Display hook output, abort closure
+- Hook timeout: Not enforced (project's responsibility)
+
+---
+
 ### Step 0.5: Handle ALL Uncommitted Changes
 
 Before archiving or creating new resume, check for ANY uncommitted changes in the repository.
@@ -258,7 +324,11 @@ If context is limited, focus on essential state. Optional sections (Key Decision
 
 ### Step 3: Create CLAUDE_RESUME.md
 
-**Location**: Current project root (same directory as CLAUDE.md)
+**Location** (two supported locations):
+- `.claude/CLAUDE_RESUME.md` (preferred, aligns with Claude Code patterns)
+- `CLAUDE_RESUME.md` (legacy, project root)
+
+Use same location as existing resume if one exists. For new resumes, prefer `.claude/` if that directory exists.
 
 **Format**: See `references/RESUME_FORMAT_v1.3.md` for complete specification.
 
@@ -361,4 +431,4 @@ Summary: [One sentence about session outcome]
 
 ---
 
-*Session-closure skill v1.5.0 - Added Pending Outbound Handoffs to Resume format (December 2025)*
+*Session-closure skill v0.5.1 - Added pre-check hook, .claude/ location support, version sync (January 2026)*

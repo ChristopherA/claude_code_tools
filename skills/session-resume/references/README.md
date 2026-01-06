@@ -192,6 +192,36 @@ Developer B (next morning):
 # Exit: 0=clean, 1=changes-detected, 2=error
 ```
 
+## Project Pre-Check Hook
+
+Projects can run custom preparation before the uncommitted changes check by creating `.claude/hooks/session-pre-check.sh`.
+
+**Use cases**:
+- Stash files that shouldn't be committed (`.pages`, `.numbers`, temp files)
+- Run project-specific preparation scripts
+- Check project-specific preconditions
+
+**Example** (stash Apple Pages autosave noise):
+
+```bash
+#!/bin/bash
+# .claude/hooks/session-pre-check.sh
+PROJECT_ROOT="${1:-$PWD}"
+cd "$PROJECT_ROOT" || exit 1
+
+PAGES_FILES=$(git status --porcelain | grep '\.pages$' | awk '{print $2}')
+if [ -n "$PAGES_FILES" ]; then
+  echo "📦 Stashing Apple Pages files..."
+  git stash push -m "session-pre-check: .pages files" -- $PAGES_FILES
+fi
+exit 0
+```
+
+**Hook contract**:
+- Receives project root as first argument
+- Exit 0 = proceed, non-zero = abort with hook output as message
+- If hook doesn't exist, step is silently skipped
+
 ## Customization
 
 **Resume location**: CLAUDE_RESUME.md in project root

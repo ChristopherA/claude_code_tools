@@ -31,15 +31,24 @@ if [ -z "$CHANGES" ]; then
     exit 0
 fi
 
-# Check for CLAUDE_RESUME.md changes
+# Find which resume location exists
+if [ -f ".claude/CLAUDE_RESUME.md" ]; then
+    RESUME_FILE=".claude/CLAUDE_RESUME.md"
+elif [ -f "CLAUDE_RESUME.md" ]; then
+    RESUME_FILE="CLAUDE_RESUME.md"
+else
+    RESUME_FILE=""
+fi
+
+# Check for CLAUDE_RESUME.md changes (either location)
 # Porcelain v2 formats:
 # - Type 1 (ordinary changed): "1 <XY> <sub> <mH> <mI> <mW> <hH> <hI> <path>"
 #   Where XY can be: .M (unstaged), M. (staged), MM (both)
 # - Type ? (untracked): "? <path>"
-RESUME_CHANGES=$(echo "$CHANGES" | grep "CLAUDE_RESUME.md$" || true)
+RESUME_CHANGES=$(echo "$CHANGES" | grep -E "(^|/)CLAUDE_RESUME.md$" || true)
 
-# Get all other changes (not CLAUDE_RESUME.md)
-UNEXPECTED=$(echo "$CHANGES" | grep -v "CLAUDE_RESUME.md$" || true)
+# Get all other changes (not CLAUDE_RESUME.md in either location)
+UNEXPECTED=$(echo "$CHANGES" | grep -v -E "(^|/)CLAUDE_RESUME.md$" || true)
 
 if [ -n "$UNEXPECTED" ]; then
     echo "❌ ERROR: Unexpected changes detected during closure" >&2
@@ -61,11 +70,16 @@ if [ -z "$RESUME_CHANGES" ]; then
 fi
 
 # Only CLAUDE_RESUME.md changed - safe to commit
-git add CLAUDE_RESUME.md
+if [ -n "$RESUME_FILE" ]; then
+    git add "$RESUME_FILE"
+else
+    # Try both locations
+    git add CLAUDE_RESUME.md .claude/CLAUDE_RESUME.md 2>/dev/null || true
+fi
 
 # Show what's being committed
 echo "=== Staged changes ==="
-git diff --staged CLAUDE_RESUME.md
+git diff --staged
 
 # Commit with standardized message
 # Note: This is a minimal template. Claude should enhance this message based on:

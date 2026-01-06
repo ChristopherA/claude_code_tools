@@ -255,6 +255,88 @@ test_skill_file() {
     fi
 }
 
+# ============================================
+# v0.5.1 Tests: Dual Location Support
+# ============================================
+
+# Test 9: find_local_cleanup - .claude/processes/ location
+test_local_claude_processes() {
+    echo ""
+    echo "Test 9: Local cleanup (.claude/processes/ location)"
+    TESTS_RUN=$((TESTS_RUN + 1))
+
+    setup_test_env
+
+    # Setup: Create local cleanup file in .claude/processes/
+    mkdir -p .claude/processes
+    echo "# Local cleanup" > .claude/processes/local-session-cleanup.md
+
+    # Execute
+    OUTPUT=$("$SCRIPT_DIR/find_local_cleanup.sh" 2>&1)
+
+    # Verify: Finds file in .claude/processes/
+    if [[ "$OUTPUT" == *"FOUND:"* ]] && [[ "$OUTPUT" == *".claude/processes"* ]]; then
+        pass ".claude/processes/ location detected"
+    else
+        fail "Expected FOUND with .claude/processes/, got: $OUTPUT"
+    fi
+
+    cleanup_test_env
+}
+
+# Test 10: .claude/processes/ takes precedence over claude/processes/
+test_local_precedence() {
+    echo ""
+    echo "Test 10: Local cleanup (.claude/ precedence)"
+    TESTS_RUN=$((TESTS_RUN + 1))
+
+    setup_test_env
+
+    # Setup: Create local cleanup files in BOTH locations
+    mkdir -p claude/processes
+    echo "# Legacy location" > claude/processes/local-session-cleanup.md
+
+    mkdir -p .claude/processes
+    echo "# Preferred location" > .claude/processes/local-session-cleanup.md
+
+    # Execute
+    OUTPUT=$("$SCRIPT_DIR/find_local_cleanup.sh" 2>&1)
+
+    # Verify: Finds file in .claude/processes/ (preferred)
+    if [[ "$OUTPUT" == *"FOUND:"* ]] && [[ "$OUTPUT" == *".claude/processes"* ]]; then
+        pass ".claude/processes/ takes precedence"
+    else
+        fail "Expected .claude/processes/ precedence, got: $OUTPUT"
+    fi
+
+    cleanup_test_env
+}
+
+# Test 11: Falls back to claude/processes/ when .claude/ not present
+test_local_fallback() {
+    echo ""
+    echo "Test 11: Local cleanup (claude/ fallback)"
+    TESTS_RUN=$((TESTS_RUN + 1))
+
+    setup_test_env
+
+    # Setup: Create only in legacy location
+    mkdir -p claude/processes
+    echo "# Legacy location" > claude/processes/local-session-cleanup.md
+
+    # Execute
+    OUTPUT=$("$SCRIPT_DIR/find_local_cleanup.sh" 2>&1)
+
+    # Verify: Finds file in claude/processes/
+    if [[ "$OUTPUT" == *"FOUND:"* ]] && [[ "$OUTPUT" == *"claude/processes"* ]]; then
+        pass "claude/processes/ fallback works"
+    else
+        fail "Expected fallback to claude/processes/, got: $OUTPUT"
+    fi
+
+    cleanup_test_env
+}
+
 # Run all tests
 echo "========================================"
 echo "session-cleanup Script Test Suite"
@@ -268,6 +350,10 @@ test_local_file_not_found
 test_permissions_script
 test_clean_repo
 test_skill_file
+# v0.5.1 tests
+test_local_claude_processes
+test_local_precedence
+test_local_fallback
 
 # Summary
 echo ""

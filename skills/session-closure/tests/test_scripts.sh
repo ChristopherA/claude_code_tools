@@ -242,6 +242,122 @@ test_missing_file() {
     cleanup_test_env
 }
 
+# ============================================
+# v0.5.1 Tests: Dual Location Support
+# ============================================
+
+# Test 7: Archive from .claude/ location
+test_archive_claude_dir() {
+    echo ""
+    echo "Test 7: Archive from .claude/ location"
+    TESTS_RUN=$((TESTS_RUN + 1))
+
+    setup_test_env
+
+    # Setup: Create resume in .claude/ directory
+    mkdir -p .claude
+    cp "$FIXTURE_DIR/sample_resume.md" .claude/CLAUDE_RESUME.md
+
+    # Execute: archive script
+    OUTPUT=$("$SCRIPT_DIR/archive_resume.sh" 2>&1)
+
+    # Verify: Archive message references .claude/ path
+    if [[ "$OUTPUT" == *"Archived to .claude/archives/CLAUDE_RESUME"* ]]; then
+        pass ".claude/ archive path used"
+    else
+        fail "Expected .claude/archives/ path, got: $OUTPUT"
+    fi
+
+    # Verify: Archive directory created in .claude/
+    if [ -d ".claude/archives/CLAUDE_RESUME" ]; then
+        pass ".claude/archives/ directory created"
+    else
+        fail ".claude/archives/ directory should exist"
+    fi
+
+    cleanup_test_env
+}
+
+# Test 8: Archive from root when no .claude/ resume
+test_archive_root_location() {
+    echo ""
+    echo "Test 8: Archive from root location"
+    TESTS_RUN=$((TESTS_RUN + 1))
+
+    setup_test_env
+
+    # Setup: Create resume in root only (no .claude/)
+    cp "$FIXTURE_DIR/sample_resume.md" CLAUDE_RESUME.md
+
+    # Execute: archive script
+    OUTPUT=$("$SCRIPT_DIR/archive_resume.sh" 2>&1)
+
+    # Verify: Archive message references root path
+    if [[ "$OUTPUT" == *"Archived to archives/CLAUDE_RESUME"* ]]; then
+        pass "Root archive path used"
+    else
+        fail "Expected archives/ path, got: $OUTPUT"
+    fi
+
+    # Verify: Archive directory created in root
+    if [ -d "archives/CLAUDE_RESUME" ]; then
+        pass "Root archives/ directory created"
+    else
+        fail "Root archives/ directory should exist"
+    fi
+
+    cleanup_test_env
+}
+
+# Test 9: Validate resume in .claude/ location
+test_validate_claude_dir() {
+    echo ""
+    echo "Test 9: Validate resume (.claude/ location)"
+    TESTS_RUN=$((TESTS_RUN + 1))
+
+    setup_test_env
+
+    # Setup: Create valid resume in .claude/
+    mkdir -p .claude
+    cp "$FIXTURE_DIR/sample_resume.md" .claude/CLAUDE_RESUME.md
+
+    # Execute: validate script
+    if "$SCRIPT_DIR/validate_resume.sh" . >/dev/null 2>&1; then
+        pass ".claude/ resume validated successfully"
+    else
+        fail ".claude/ resume should pass validation"
+    fi
+
+    cleanup_test_env
+}
+
+# Test 10: .claude/ location takes precedence for validation
+test_validate_precedence() {
+    echo ""
+    echo "Test 10: Validate precedence (.claude/ over root)"
+    TESTS_RUN=$((TESTS_RUN + 1))
+
+    setup_test_env
+
+    # Setup: Invalid resume in root, valid in .claude/
+    cat > CLAUDE_RESUME.md <<EOF
+# Incomplete Resume
+Just some text, missing sections.
+EOF
+
+    mkdir -p .claude
+    cp "$FIXTURE_DIR/sample_resume.md" .claude/CLAUDE_RESUME.md
+
+    # Execute: validate script (should pass because .claude/ is valid)
+    if "$SCRIPT_DIR/validate_resume.sh" . >/dev/null 2>&1; then
+        pass ".claude/ takes precedence in validation"
+    else
+        fail "Should validate .claude/ resume (ignore invalid root)"
+    fi
+
+    cleanup_test_env
+}
+
 # Run all tests
 echo "========================================"
 echo "session-closure Script Test Suite"
@@ -253,6 +369,11 @@ test_git_tracked
 test_valid_resume
 test_invalid_resume
 test_missing_file
+# v0.5.1 tests
+test_archive_claude_dir
+test_archive_root_location
+test_validate_claude_dir
+test_validate_precedence
 
 # Summary
 echo ""

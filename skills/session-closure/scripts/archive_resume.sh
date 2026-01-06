@@ -25,9 +25,16 @@ if [ ! -f "CLAUDE.md" ]; then
     echo "   Working directory: $(pwd)" >&2
 fi
 
-# Configuration (now using relative paths after cd to project root)
-ARCHIVE_DIR="archives/CLAUDE_RESUME"
-SOURCE="CLAUDE_RESUME.md"
+# Find resume file (prefer .claude/ location)
+if [ -f ".claude/CLAUDE_RESUME.md" ]; then
+    SOURCE=".claude/CLAUDE_RESUME.md"
+    ARCHIVE_DIR=".claude/archives/CLAUDE_RESUME"
+elif [ -f "CLAUDE_RESUME.md" ]; then
+    SOURCE="CLAUDE_RESUME.md"
+    ARCHIVE_DIR="archives/CLAUDE_RESUME"
+else
+    SOURCE=""
+fi
 TIMESTAMP=$(date +%Y-%m-%d-%H%M)
 
 # Function: Check if in git repo
@@ -44,7 +51,7 @@ is_git_tracked() {
 # Main logic
 
 # Check if source exists
-if [ ! -f "$SOURCE" ]; then
+if [ -z "$SOURCE" ] || [ ! -f "$SOURCE" ]; then
     echo "✓ No previous resume to archive"
     exit 0
 fi

@@ -39,13 +39,16 @@ fi
 RESUME_CHANGED=false
 OTHER_CHANGED=false
 
-# Check if CLAUDE_RESUME.md changed (modified or staged)
+# Check if CLAUDE_RESUME.md changed (either location)
 if ! git diff --quiet CLAUDE_RESUME.md 2>/dev/null || ! git diff --cached --quiet CLAUDE_RESUME.md 2>/dev/null; then
     RESUME_CHANGED=true
 fi
+if ! git diff --quiet .claude/CLAUDE_RESUME.md 2>/dev/null || ! git diff --cached --quiet .claude/CLAUDE_RESUME.md 2>/dev/null; then
+    RESUME_CHANGED=true
+fi
 
-# Check if any other files changed
-OTHER_FILES=$(echo "$CHANGES" | grep -v "CLAUDE_RESUME.md" || true)
+# Check if any other files changed (exclude both resume locations)
+OTHER_FILES=$(echo "$CHANGES" | grep -v "CLAUDE_RESUME.md" | grep -v ".claude/CLAUDE_RESUME.md" || true)
 if [ -n "$OTHER_FILES" ]; then
     OTHER_CHANGED=true
 fi

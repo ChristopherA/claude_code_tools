@@ -1,6 +1,6 @@
 ---
 name: session-resume
-version: 1.5.0
+version: 0.5.1
 description: >
   Load and process previous session context from CLAUDE_RESUME.md.
   Checks for uncommitted changes before loading (blocking). Uses
@@ -25,6 +25,7 @@ description: >
 
 1. [Resume Loading Steps](#resume-loading-steps)
    - [Step 0: Check Permissions](#step-0-check-permissions-one-time-setup)
+   - [Step 0.1: Project Pre-Check Hook](#step-01-project-pre-check-hook-optional)
    - [Step 0.5: Check for Uncommitted Changes](#step-05-check-for-uncommitted-changes-blocking)
    - [Step 1: Check for Resume File](#step-1-check-for-resume-file)
    - [Step 2: Load and Analyze Resume](#step-2-load-and-analyze-resume)
@@ -171,6 +172,71 @@ fi
 
 ---
 
+### Step 0.1: Project Pre-Check Hook (OPTIONAL)
+
+**Purpose**: Allow projects to run custom preparation before the uncommitted changes check.
+
+**Why this matters**:
+- Projects may have files that should be stashed, not committed (e.g., Apple Pages autosave)
+- Project-specific protocols exist in LOCAL_CONTEXT.md but skills don't read them
+- This hook enables mechanical enforcement of project-specific behavior
+- Backward compatible: skipped if no hook exists
+
+**Implementation**:
+
+Check for and run project hook if it exists:
+
+```bash
+HOOK_PATH="${PROJECT_ROOT:-$PWD}/.claude/hooks/session-pre-check.sh"
+if [ -x "$HOOK_PATH" ]; then
+  "$HOOK_PATH" "${PROJECT_ROOT:-$PWD}"
+fi
+```
+
+**Hook location**: `.claude/hooks/session-pre-check.sh` (project-level)
+
+**Hook contract**:
+- Receives project root as first argument
+- Exit code 0 = proceed to Step 0.5
+- Exit code non-zero = abort resume with hook's stderr/stdout as message
+- Hook is responsible for its own user communication
+
+**Common use cases**:
+- Stash files that shouldn't be committed (`.pages`, `.numbers`, temp files)
+- Run project-specific preparation scripts
+- Check project-specific preconditions
+
+**Example hook** (stash Apple Pages files):
+
+```bash
+#!/bin/bash
+# .claude/hooks/session-pre-check.sh
+# Stash Apple Pages files before session skills run
+
+PROJECT_ROOT="${1:-$PWD}"
+cd "$PROJECT_ROOT" || exit 1
+
+# Find modified .pages files
+PAGES_FILES=$(git status --porcelain | grep '\.pages$' | awk '{print $2}')
+
+if [ -n "$PAGES_FILES" ]; then
+  echo "📦 Stashing Apple Pages files (autosave noise)..."
+  git stash push -m "session-pre-check: .pages files" -- $PAGES_FILES
+  echo "✓ Stashed. Will auto-pop after session skill completes."
+fi
+
+exit 0
+```
+
+**If hook doesn't exist**: Skip silently, proceed to Step 0.5
+
+**Error handling**:
+- Hook not executable: Display warning, proceed to Step 0.5
+- Hook fails (non-zero): Display hook output, abort resume
+- Hook timeout: Not enforced (project's responsibility)
+
+---
+
 ### Step 0.5: Check for Uncommitted Changes (BLOCKING)
 
 **Purpose**: Ensure clean git state before loading resume context.
@@ -228,9 +294,11 @@ When uncommitted changes are detected, you MUST commit them before proceeding. F
 
 ### Step 1: Check for Resume File
 
-1. **Look for CLAUDE_RESUME.md** in current directory
-   - If found: Continue to Step 2
-   - If not found: Check archives/ and report
+1. **Look for CLAUDE_RESUME.md** (check both locations):
+   - `.claude/CLAUDE_RESUME.md` (preferred, aligns with Claude Code patterns)
+   - `CLAUDE_RESUME.md` (legacy, project root)
+   - If found in either location: Continue to Step 2
+   - If not found: Check archives and report
 
 2. **If CLAUDE_RESUME.md not found**, check archives:
 
@@ -357,4 +425,4 @@ See **CORE_PROCESSES.md § Git Commit Protocol** for complete requirements.
 
 ---
 
-*Session-resume skill v1.5.0 - Added Pending Outbound Handoffs recognition (December 2025)*
+*Session-resume skill v0.5.1 - Added pre-check hook, .claude/ location support, version sync (January 2026)*

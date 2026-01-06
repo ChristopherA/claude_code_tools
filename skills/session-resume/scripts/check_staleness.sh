@@ -17,11 +17,12 @@ if [ ! -f "CLAUDE.md" ]; then
     exit 1
 fi
 
-# Resume file is always CLAUDE_RESUME.md in project root
-RESUME="CLAUDE_RESUME.md"
-
-# Check if file exists
-if [ ! -f "$RESUME" ]; then
+# Find resume file (prefer .claude/ location)
+if [ -f ".claude/CLAUDE_RESUME.md" ]; then
+    RESUME=".claude/CLAUDE_RESUME.md"
+elif [ -f "CLAUDE_RESUME.md" ]; then
+    RESUME="CLAUDE_RESUME.md"
+else
     echo "error"
     exit 1
 fi

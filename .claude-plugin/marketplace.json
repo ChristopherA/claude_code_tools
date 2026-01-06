@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Claude Code skills and hooks collection - session management, git worktree operations, and more",
-    "version": "1.7.0"
+    "version": "1.7.2"
   },
   "plugins": [
     {
@@ -27,6 +27,15 @@
       "strict": false,
       "skills": [
         "./skills/git-worktree"
+      ]
+    },
+    {
+      "name": "context-monitor",
+      "description": "Always-visible statusline showing context usage percentage with color thresholds. Shows [Model] XX% even when Claude's built-in indicator is hidden. Manual installation required - see tools/context-monitor/README.md.",
+      "source": "./",
+      "strict": false,
+      "tools": [
+        "./tools/context-monitor"
       ]
     }
   ]
