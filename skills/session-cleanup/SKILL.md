@@ -198,7 +198,9 @@ Consider these categories:
 (c) File proliferation - any new files that should be integrated?
 (d) Cross-references - any stale paths or broken links?
 (e) Technical debt - any workarounds, TODOs, or deferred issues?
-(f) Test coverage - if skills modified, were tests written for changes?
+(f) Test coverage (BLOCKING) - if skills/hooks modified, were tests written?
+    - No deployment without tests (skill-deployment.md § Step 0)
+    - v1.7.3 shipped without tests - this is the anti-pattern to prevent
 (g) Issue resolution - any GitHub issues resolved? Close with details.
 
 Categorize findings as:
