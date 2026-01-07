@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Claude Code skills and hooks collection - session management, git worktree operations, and more",
-    "version": "1.7.2"
+    "version": "1.7.3"
   },
   "plugins": [
     {
@@ -36,6 +36,16 @@
       "strict": false,
       "tools": [
         "./tools/context-monitor"
+      ]
+    },
+    {
+      "name": "git-enforcement-hooks",
+      "description": "Git workflow enforcement hooks. Requires -S -s flags on commits, blocks Claude attribution, enforces separate git add/commit workflow. Python 3.9+ compatible. Manual installation to ~/.claude/hooks/ required.",
+      "source": "./",
+      "strict": false,
+      "hooks": [
+        "./hooks/git-commit-compliance.py",
+        "./hooks/git-workflow-guidance.py"
       ]
     }
   ]

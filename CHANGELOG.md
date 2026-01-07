@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.3] - 2026-01-06
+
+### Fixed
+- **git-commit-compliance.py**: Python 3.9 compatibility (closes #3)
+  - Added `from __future__ import annotations` for PEP 563 deferred evaluation
+  - Type hints like `str | None` now work on Python 3.9+
+- **git-workflow-guidance.py**: False positive on gh CLI (closes #4)
+  - Added `is_git_command()` function to properly detect git commands
+  - Now correctly skips `gh issue create --body "git workflow"` style commands
+  - Handles shell-wrapped git: `bash -c "git ..."`, `/bin/zsh -c 'git ...'`
+
+### Added
+- **git-enforcement-hooks plugin**: Added to marketplace for discoverability (closes #2)
+  - git-commit-compliance.py - Enforces -S -s flags, blocks Claude attribution
+  - git-workflow-guidance.py - Enforces separate git add/commit workflow
+
+### Changed
+- **hooks/README.md**: Updated to document all hooks (Python + Bash)
+- **marketplace.json**: Added git-enforcement-hooks plugin, version 1.7.2 → 1.7.3
+
+---
+
 ## [1.7.2] - 2026-01-06
 
 ### Added
@@ -617,4 +639,4 @@ Detailed release notes available:
 ---
 
 *Changelog maintained by [Christopher Allen](https://github.com/ChristopherA)*
-*Last updated: December 31, 2025*
+*Last updated: January 6, 2026*

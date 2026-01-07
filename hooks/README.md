@@ -1,13 +1,30 @@
-# Session-Start Hooks
+# Claude Code Hooks
 
-Claude Code hooks for session initialization. These run automatically at session start.
+Claude Code hooks for session initialization and git workflow enforcement.
 
 ## Hooks Included
 
-### session-start.sh
+### Git Enforcement Hooks (Python)
+
+#### git-commit-compliance.py
+Enforces commit standards for Claude-assisted development:
+- **Required flags**: -S (GPG signing), -s (signoff)
+- **Blocks**: Claude attribution in commit messages
+- **Validates**: Meaningful commit messages (≥10 chars)
+- **Python 3.9+ compatible** (uses `from __future__ import annotations`)
+
+#### git-workflow-guidance.py
+Enforces git workflow best practices:
+- **Blocks**: Combined `git add && git commit` commands
+- **Guides**: Separate staging from committing for review
+- **Skips**: Non-git commands (avoids false positives on `gh` CLI)
+
+### Session-Start Hooks (Bash)
+
+#### session-start.sh
 Persists `PROJECT_ROOT` environment variable throughout the session, ensuring consistent path handling even when Claude changes directories.
 
-### session-start-git-context.sh
+#### session-start-git-context.sh
 Provides git repository awareness at session start:
 - Current branch name
 - Uncommitted changes count
@@ -19,12 +36,16 @@ Provides git repository awareness at session start:
 ## Installation
 
 ```bash
-# Copy hooks to user-level hooks directory
-cp hooks/*.sh ~/.claude/hooks/
-chmod +x ~/.claude/hooks/session-start*.sh
+# Copy all hooks to user-level hooks directory
+cp hooks/*.sh hooks/*.py ~/.claude/hooks/
+chmod +x ~/.claude/hooks/session-start*.sh ~/.claude/hooks/git-*.py
 ```
 
 **Note**: Hooks deploy to `~/.claude/hooks/` (different from skills which go to `~/.claude/skills/`).
+
+**Requirements**:
+- Python 3.9+ for git enforcement hooks
+- Bash for session-start hooks
 
 ## Hook vs Skill Distinction
 
@@ -40,8 +61,8 @@ These session-start hooks complement the session-closure/session-resume skills b
 
 ## Ownership
 
-These hooks are owned by the session-skills project. For git enforcement hooks (git-commit-compliance.py, git-workflow-guidance.py), see the claude-code-foundation project.
+All hooks in this directory are owned by the claude-code-tools project.
 
 ---
 
-*Session-start hooks v1.0 - December 2025*
+*Hooks v1.1 - January 2026*
