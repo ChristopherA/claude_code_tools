@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.4] - 2026-01-06
+
+### Added
+- **hooks/tests/test_hooks.sh**: Automated test suite for git enforcement hooks
+  - 13 tests covering: syntax validation, is_git_command() detection, hook behavior
+  - Tests for Issue #3 (Python 3.9 compatibility) and Issue #4 (false positives)
+  - Follows skill-testing.md methodology
+
+### Changed
+- **marketplace.json**: Version 1.7.3 → 1.7.4
+
+### Testing
+- hooks: 13 tests (all passing)
+  - Python syntax validation (2 tests)
+  - is_git_command() true positives (1 test, 10 cases)
+  - is_git_command() false positives (1 test, 7 cases)
+  - Hook behavior tests (7 tests)
+  - Future annotations verification (2 tests)
+
+---
+
 ## [1.7.3] - 2026-01-06
 
 ### Fixed
@@ -26,6 +47,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **hooks/README.md**: Updated to document all hooks (Python + Bash)
 - **marketplace.json**: Added git-enforcement-hooks plugin, version 1.7.2 → 1.7.3
+
+### Testing
+- hooks: No tests (added in v1.7.4)
 
 ---
 

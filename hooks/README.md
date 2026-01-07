@@ -47,6 +47,21 @@ chmod +x ~/.claude/hooks/session-start*.sh ~/.claude/hooks/git-*.py
 - Python 3.9+ for git enforcement hooks
 - Bash for session-start hooks
 
+## Testing
+
+Run the test suite:
+
+```bash
+./hooks/tests/test_hooks.sh
+```
+
+Tests cover:
+- Python syntax validation (Python 3.9+ compatibility)
+- `is_git_command()` detection (true positives and false positives)
+- Hook behavior (blocking, allowing, skipping non-git commands)
+
+Expected: 13 tests, all passing
+
 ## Hook vs Skill Distinction
 
 | Type | Location | Purpose |
