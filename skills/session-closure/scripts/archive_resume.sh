@@ -19,9 +19,9 @@ cd "$PROJECT_ROOT" || {
     exit 1
 }
 
-# Verify we're in a project root (should have CLAUDE.md)
-if [ ! -f "CLAUDE.md" ]; then
-    echo "⚠️  Warning: No CLAUDE.md found - may not be project root" >&2
+# Verify we're in a project root (should have CLAUDE.md in root or .claude/)
+if [ ! -f "CLAUDE.md" ] && [ ! -f ".claude/CLAUDE.md" ]; then
+    echo "⚠️  Warning: No CLAUDE.md found (checked root and .claude/) - may not be project root" >&2
     echo "   Working directory: $(pwd)" >&2
 fi
 

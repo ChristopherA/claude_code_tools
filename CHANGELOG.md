@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.6] - 2026-01-08
+
+### Fixed
+- **Issue #8**: context-monitor README missing required `type` field in statusLine config
+  - Added `"type": "command"` to JSON example
+- **Issue #6**: archive_resume.sh now checks both root and `.claude/` for CLAUDE.md
+  - Previously only checked root, causing confusing warning for projects using `.claude/CLAUDE.md`
+- **Issue #7**: Investigated - current code already has correct contextual messaging
+  - Shows "Changes found in project files" when CLAUDE_RESUME.md unchanged
+  - Issue referenced message from older version, already fixed
+
+### Changed
+- **session-cleanup skill v0.5.2**: Added category (h) marketplace validation to ultrathink
+- **marketplace.json**: Version 1.7.5 → 1.7.6
+
+### Testing
+- session-closure: 10 tests (18 assertions), all passing
+
+---
+
 ## [1.7.5] - 2026-01-07
 
 ### Fixed

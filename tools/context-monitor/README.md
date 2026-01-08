@@ -29,6 +29,7 @@ Add to `~/.claude/settings.json`:
 ```json
 {
   "statusLine": {
+    "type": "command",
     "command": "~/.claude/scripts/status-line.sh"
   }
 }
