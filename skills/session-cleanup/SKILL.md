@@ -1,6 +1,6 @@
 ---
 name: session-cleanup
-version: 0.5.1
+version: 0.5.2
 description: >
   Adaptive session audit before closure. Uses structured ultrathink
   with category hints to review session work proportionate to complexity.
@@ -202,6 +202,12 @@ Consider these categories:
     - No deployment without tests (skill-deployment.md § Step 0)
     - v1.7.3 shipped without tests - this is the anti-pattern to prevent
 (g) Issue resolution - any GitHub issues resolved? Close with details.
+(h) Marketplace changes (BLOCKING) - if marketplace.json modified:
+    - Schema validated against Claude Code docs?
+    - All keys recognized (no `tools`, etc.)?
+    - hooks/mcpServers use .json config format?
+    - Installation tested end-to-end?
+    - v1.7.2-1.7.4 had invalid schema - this is the anti-pattern to prevent
 
 Categorize findings as:
 - [EXECUTE now] - do before session closes
@@ -306,4 +312,4 @@ When ready to close session, say "close context" or invoke session-closure.
 
 ---
 
-*Session-cleanup skill v0.5.1 - Version sync with session-closure/resume (January 2026)*
+*Session-cleanup skill v0.5.2 - Added category (h) marketplace validation (January 2026)*
