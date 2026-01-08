@@ -35,13 +35,27 @@ Provides git repository awareness at session start:
 
 ## Installation
 
+### Option 1: Plugin Installation (Git Enforcement Hooks)
+
+```bash
+# Add marketplace (if not already added)
+/plugin marketplace add ChristopherA/claude_code_tools
+
+# Install git enforcement hooks
+/plugin install git-enforcement-hooks@claude-code-tools
+```
+
+### Option 2: Manual Installation (All Hooks)
+
 ```bash
 # Copy all hooks to user-level hooks directory
 cp hooks/*.sh hooks/*.py ~/.claude/hooks/
 chmod +x ~/.claude/hooks/session-start*.sh ~/.claude/hooks/git-*.py
 ```
 
-**Note**: Hooks deploy to `~/.claude/hooks/` (different from skills which go to `~/.claude/skills/`).
+**Note**: Session-start hooks (`.sh` files) require manual installation. Git enforcement hooks can be installed via plugin or manually.
+
+**Hooks location**: `~/.claude/hooks/` (different from skills which go to `~/.claude/skills/`)
 
 **Requirements**:
 - Python 3.9+ for git enforcement hooks
@@ -80,4 +94,4 @@ All hooks in this directory are owned by the claude-code-tools project.
 
 ---
 
-*Hooks v1.1 - January 2026*
+*Hooks v1.2 - January 2026*

@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.5] - 2026-01-07
+
+### Fixed
+- **Marketplace schema compliance**: Fixed errors preventing plugin installation
+  - Error: `Unrecognized key(s) in object: 'tools'` - removed context-monitor from marketplace
+  - Error: `hooks.0: Invalid input: must end with ".json"` - added hooks.json wrapper
+
+### Added
+- **hooks/hooks.json**: Hook configuration file for plugin system
+  - Wraps git-commit-compliance.py and git-workflow-guidance.py
+  - Uses `${CLAUDE_PLUGIN_ROOT}` for portable paths
+  - Enables `/plugin install git-enforcement-hooks@claude-code-tools`
+
+### Changed
+- **marketplace.json**: Version 1.7.4 → 1.7.5
+  - Removed context-monitor plugin (no `tools` key in schema - manual install only)
+  - Changed git-enforcement-hooks to use `"hooks": "./hooks/hooks.json"`
+- **README.md**: Updated installation instructions
+  - Added git-enforcement-hooks to plugin install commands
+  - Added note about context-monitor requiring manual installation
+
+### Documentation
+- hooks/README.md updated with plugin installation option
+
+---
+
 ## [1.7.4] - 2026-01-06
 
 ### Added
@@ -663,4 +689,4 @@ Detailed release notes available:
 ---
 
 *Changelog maintained by [Christopher Allen](https://github.com/ChristopherA)*
-*Last updated: January 6, 2026*
+*Last updated: January 7, 2026*

@@ -61,7 +61,10 @@ This repository provides multiple skills and hooks for Claude Code:
 # Install individual plugins
 /plugin install session-skills@claude-code-tools
 /plugin install git-worktree@claude-code-tools
+/plugin install git-enforcement-hooks@claude-code-tools
 ```
+
+**Note**: The context-monitor tool requires manual installation (see Option 2 below).
 
 ### Option 2: Manual Installation
 
@@ -455,31 +458,26 @@ Both skills follow best practices:
 
 ## Versions
 
-**Current**: v1.7.2 (January 6, 2026)
+**Current**: v1.7.5 (January 7, 2026)
 
-**What's New in v1.7.2**:
-- **NEW**: context-monitor tool v0.1.0 - Always-visible statusline showing context usage
-  - Model display, color thresholds, configurable overhead
-- **session-skills v0.5.1**: Dual location support
-  - Support for `.claude/CLAUDE_RESUME.md` and `.claude/archives/`
-  - Support for `.claude/processes/local-session-cleanup.md`
-  - 11 new automated tests (33 total)
+**What's New in v1.7.5**:
+- **Fixed**: Marketplace schema compliance
+  - Removed context-monitor from marketplace (requires manual install - no `tools` key in schema)
+  - Fixed git-enforcement-hooks to use hooks.json config (schema requires `.json` files)
+  - Added hooks/hooks.json wrapper for Python scripts
+- **git-enforcement-hooks**: Now installable via plugin system
 
-**Previous (v1.7.1)**:
-- git-worktree: Fixed false positive in troubleshoot.sh for bare repos
+**Previous (v1.7.4)**:
+- Added hooks test suite (13 tests)
+- Fixed GitHub Issues #2, #3, #4
+
+**Previous (v1.7.2)**:
+- context-monitor tool v0.1.0 - Always-visible statusline (manual install only)
+- session-skills v0.5.1: Dual location support
 
 **Previous (v1.6.0)**:
 - git-worktree skill - Interactive git worktree management
 - Repository renamed to "claude-code-tools"
-
-**Previous (v1.4.0)**:
-- Git hooks enforcement (`~/.claude/hooks/git-commit-compliance.py`)
-- Consolidated Git Commit Protocol (hooks + CORE_PROCESSES.md)
-- 34 automated tests (skills + hooks)
-- Working directory fixes - scripts work from any directory
-- Progressive disclosure architecture (76% token reduction)
-- Cross-platform support (macOS + Linux)
-- BSD-2-Clause-Patent LICENSE
 
 See [CHANGELOG.md](./CHANGELOG.md) for complete version history.
 

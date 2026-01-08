@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Claude Code skills and hooks collection - session management, git worktree operations, and more",
-    "version": "1.7.4"
+    "version": "1.7.5"
   },
   "plugins": [
     {
@@ -30,23 +30,11 @@
       ]
     },
     {
-      "name": "context-monitor",
-      "description": "Always-visible statusline showing context usage percentage with color thresholds. Shows [Model] XX% even when Claude's built-in indicator is hidden. Manual installation required - see tools/context-monitor/README.md.",
-      "source": "./",
-      "strict": false,
-      "tools": [
-        "./tools/context-monitor"
-      ]
-    },
-    {
       "name": "git-enforcement-hooks",
-      "description": "Git workflow enforcement hooks. Requires -S -s flags on commits, blocks Claude attribution, enforces separate git add/commit workflow. Python 3.9+ compatible. Manual installation to ~/.claude/hooks/ required.",
+      "description": "Git workflow enforcement hooks. Requires -S -s flags on commits, blocks Claude attribution, enforces separate git add/commit workflow. Python 3.9+ compatible.",
       "source": "./",
       "strict": false,
-      "hooks": [
-        "./hooks/git-commit-compliance.py",
-        "./hooks/git-workflow-guidance.py"
-      ]
+      "hooks": "./hooks/hooks.json"
     }
   ]
 }
