@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.7] - 2026-01-12
+
+### Fixed
+- **Issue #15 (CRITICAL)**: hooks.json missing required `"hooks"` wrapper key
+  - Plugin hooks were not executing at all
+  - Git enforcement (commit compliance, workflow guidance) was completely broken
+  - Added required top-level `"hooks"` wrapper per Claude Code schema
+
+---
+
 ## [1.7.6] - 2026-01-08
 
 ### Fixed
